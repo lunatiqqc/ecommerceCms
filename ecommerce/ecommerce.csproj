@@ -9,15 +9,17 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.5" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+		<MySourceFiles Include="$(TargetDir)\**\*.*" />
 	</ItemGroup>
 
-	<Target Name="MyAfterBuildTarget" BeforeTargets="AfterBuild">
-		<Message Text="### My AfterBuild Target ###" Importance="high" />
+	<Target Name="CopyFiles" AfterTargets="Build">
+		<Exec Command="net stop w3svc" IgnoreExitCode="true" />
+		<Copy SourceFiles="@(MySourceFiles)"
+		      DestinationFolder="C:\Users\Lunatiqqc\source\build\ecommerce" />
+		<Exec Command="net start w3svc" IgnoreExitCode="true" />
+
 	</Target>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="xcopy /s /y &quot;$(TargetDir)*.*&quot; &quot;C:\Users\Lunatiqqc\source\build\ecommerce\&quot;" />
-	</Target>
 	
 	
 
