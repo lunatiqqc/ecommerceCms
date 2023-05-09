@@ -1,0 +1,1 @@
+global.myGlobalVariable = "Hello World";
