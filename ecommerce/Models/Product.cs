@@ -1,4 +1,5 @@
-﻿namespace cms.ecommerce.Models
+﻿using System.Text.Json.Serialization;
+namespace cms.ecommerce.Models
 {
     public class ProductField
     {
@@ -6,9 +7,7 @@
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? FieldType { get; set; }
-        public bool? IsRequired { get; set; }
         public bool? IsEnabled { get; set; }
-
         public string? Value { get; set; }
     }
 
@@ -17,9 +16,9 @@
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public int? ParentCategoryId { get; set; }
+        [JsonIgnore]
         public virtual ProductCategory? ParentCategory { get; set; }
-        public virtual ICollection<ProductCategory>? Subcategories { get; set; }
+        public virtual IEnumerable<ProductCategory>? Subcategories { get; set; }
     }
 
     public class Product
@@ -30,6 +29,6 @@
         public decimal? Price { get; set; }
         public int? StockQuantity { get; set; }
         public virtual ProductCategory? ProductCategory { get; set; }
-        public virtual ICollection<ProductField>? ProductFields { get; set; }
+        public virtual IEnumerable<ProductField>? ProductFields { get; set; }
     }
 }

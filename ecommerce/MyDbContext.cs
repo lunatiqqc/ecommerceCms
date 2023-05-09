@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using cms.ecommerce.Data;
 using cms.ecommerce.Models;
+using cms.Models;
 
 namespace cms
 {
@@ -11,6 +11,7 @@ namespace cms
         {
         }
 
+        public DbSet<Page> Pages { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<ProductField> ProductFields { get; set; }

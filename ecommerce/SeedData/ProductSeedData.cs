@@ -1,7 +1,7 @@
 ﻿using cms.ecommerce.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace cms.ecommerce.Data
+namespace cms.SeedData
 {
     public static class ProductSeedData
     {
