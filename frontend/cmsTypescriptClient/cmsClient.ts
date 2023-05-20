@@ -9,409 +9,494 @@
 // ReSharper disable InconsistentNaming
 
 export module CmsClient {
-	export class BaseCmsClient {
-		constructor() {}
-	}
+export class BaseCmsClient {
+    constructor() {}
 
-	export class PagesClient extends BaseCmsClient {
-		private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-		private baseUrl: string;
-		protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+    async transformResult<T>(
+        url: string,
+        response: Response,
+        transform: (response: Response) => unknown
+    ): Promise<T> {
+        return JSON.parse(JSON.stringify(await transform(response)));
+    }
+    transformOptions(options: RequestInit): Promise<any> {
+        return new Promise((resolve) => {
+            resolve(options);
+        });
+    }
+}
 
-		constructor(
-			baseUrl?: string,
-			http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }
-		) {
-			super();
-			this.http = http ? http : (window as any);
-			this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : 'http://localhost:5059';
-		}
+export class PagesClient extends BaseCmsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-		getPages(): Promise<Page[] | null> {
-			let url_ = this.baseUrl + '/api/Pages';
-			url_ = url_.replace(/[?&]$/, '');
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "http://localhost:5059";
+    }
 
-			let options_: RequestInit = {
-				method: 'GET',
-				headers: {
-					Accept: 'application/json'
-				}
-			};
+    get(): Promise<Page[] | null> {
+        let url_ = this.baseUrl + "/api/Pages";
+        url_ = url_.replace(/[?&]$/, "");
 
-			return this.http.fetch(url_, options_).then((_response: Response) => {
-				return this.processGetPages(_response);
-			});
-		}
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
 
-		protected processGetPages(response: Response): Promise<Page[] | null> {
-			const status = response.status;
-			let _headers: any = {};
-			if (response.headers && response.headers.forEach) {
-				response.headers.forEach((v: any, k: any) => (_headers[k] = v));
-			}
-			if (status === 200) {
-				return response.text().then((_responseText) => {
-					let result200: any = null;
-					let resultData200 =
-						_responseText === '' ? null : JSON.parse(_responseText, this.jsonParseReviver);
-					if (Array.isArray(resultData200)) {
-						result200 = [] as any;
-						for (let item of resultData200) result200!.push(Page.fromJS(item));
-					} else {
-						result200 = <any>null;
-					}
-					return result200;
-				});
-			} else if (status !== 200 && status !== 204) {
-				return response.text().then((_responseText) => {
-					return throwException(
-						'An unexpected server error occurred.',
-						status,
-						_responseText,
-						_headers
-					);
-				});
-			}
-			return Promise.resolve<Page[] | null>(null as any);
-		}
-	}
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGet(_response));
+        });
+    }
 
-	export class ProductsClient extends BaseCmsClient {
-		private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-		private baseUrl: string;
-		protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+    protected processGet(response: Response): Promise<Page[] | null> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _mappings: { source: any, target: any }[] = [];
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : jsonParse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(Page.fromJS(item, _mappings));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Page[] | null>(null as any);
+    }
+}
 
-		constructor(
-			baseUrl?: string,
-			http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }
-		) {
-			super();
-			this.http = http ? http : (window as any);
-			this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : 'http://localhost:5059';
-		}
+export class ProductsClient extends BaseCmsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-		getProducts(): Promise<Product[] | null> {
-			let url_ = this.baseUrl + '/api/Products';
-			url_ = url_.replace(/[?&]$/, '');
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "http://localhost:5059";
+    }
 
-			let options_: RequestInit = {
-				method: 'GET',
-				headers: {
-					Accept: 'application/json'
-				}
-			};
+    post(product: Product): Promise<Product> {
+        let url_ = this.baseUrl + "/api/Products";
+        url_ = url_.replace(/[?&]$/, "");
 
-			return this.http.fetch(url_, options_).then((_response: Response) => {
-				return this.processGetProducts(_response);
-			});
-		}
+        const content_ = JSON.stringify(product);
 
-		protected processGetProducts(response: Response): Promise<Product[] | null> {
-			const status = response.status;
-			let _headers: any = {};
-			if (response.headers && response.headers.forEach) {
-				response.headers.forEach((v: any, k: any) => (_headers[k] = v));
-			}
-			if (status === 200) {
-				return response.text().then((_responseText) => {
-					let result200: any = null;
-					let resultData200 =
-						_responseText === '' ? null : JSON.parse(_responseText, this.jsonParseReviver);
-					if (Array.isArray(resultData200)) {
-						result200 = [] as any;
-						for (let item of resultData200) result200!.push(Product.fromJS(item));
-					} else {
-						result200 = <any>null;
-					}
-					return result200;
-				});
-			} else if (status !== 200 && status !== 204) {
-				return response.text().then((_responseText) => {
-					return throwException(
-						'An unexpected server error occurred.',
-						status,
-						_responseText,
-						_headers
-					);
-				});
-			}
-			return Promise.resolve<Product[] | null>(null as any);
-		}
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
 
-		deleteProduct(id: number): Promise<Product | null> {
-			let url_ = this.baseUrl + '/api/Products/{id}';
-			if (id === undefined || id === null) throw new Error("The parameter 'id' must be defined.");
-			url_ = url_.replace('{id}', encodeURIComponent('' + id));
-			url_ = url_.replace(/[?&]$/, '');
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processPost(_response));
+        });
+    }
 
-			let options_: RequestInit = {
-				method: 'DELETE',
-				headers: {
-					Accept: 'application/json'
-				}
-			};
+    protected processPost(response: Response): Promise<Product> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _mappings: { source: any, target: any }[] = [];
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : jsonParse(_responseText, this.jsonParseReviver);
+            result201 = Product.fromJS(resultData201, _mappings);
+            return result201;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Product>(null as any);
+    }
 
-			return this.http.fetch(url_, options_).then((_response: Response) => {
-				return this.processDeleteProduct(_response);
-			});
-		}
+    get(): Promise<Product[] | null> {
+        let url_ = this.baseUrl + "/api/Products";
+        url_ = url_.replace(/[?&]$/, "");
 
-		protected processDeleteProduct(response: Response): Promise<Product | null> {
-			const status = response.status;
-			let _headers: any = {};
-			if (response.headers && response.headers.forEach) {
-				response.headers.forEach((v: any, k: any) => (_headers[k] = v));
-			}
-			if (status === 200) {
-				return response.text().then((_responseText) => {
-					let result200: any = null;
-					let resultData200 =
-						_responseText === '' ? null : JSON.parse(_responseText, this.jsonParseReviver);
-					result200 = resultData200 ? Product.fromJS(resultData200) : <any>null;
-					return result200;
-				});
-			} else if (status !== 200 && status !== 204) {
-				return response.text().then((_responseText) => {
-					return throwException(
-						'An unexpected server error occurred.',
-						status,
-						_responseText,
-						_headers
-					);
-				});
-			}
-			return Promise.resolve<Product | null>(null as any);
-		}
-	}
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
 
-	export class Page {
-		id!: number;
-		title?: string | undefined;
-		url?: string | undefined;
-		children?: Page[] | undefined;
-		parent?: Page | undefined;
-		visibleInMenu!: boolean;
-		requiredRole?: UserRoles | undefined;
-		isSystemPage!: boolean;
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGet(_response));
+        });
+    }
 
-		init(_data?: any) {
-			if (_data) {
-				this.id = _data['id'];
-				this.title = _data['title'];
-				this.url = _data['url'];
-				if (Array.isArray(_data['children'])) {
-					this.children = [] as any;
-					for (let item of _data['children']) this.children!.push(Page.fromJS(item));
-				}
-				this.parent = _data['parent'] ? Page.fromJS(_data['parent']) : <any>undefined;
-				this.visibleInMenu = _data['visibleInMenu'];
-				this.requiredRole = _data['requiredRole'];
-				this.isSystemPage = _data['isSystemPage'];
-			}
-		}
+    protected processGet(response: Response): Promise<Product[] | null> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _mappings: { source: any, target: any }[] = [];
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : jsonParse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(Product.fromJS(item, _mappings));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Product[] | null>(null as any);
+    }
 
-		static fromJS(data: any): Page {
-			data = typeof data === 'object' ? data : {};
-			let result = new Page();
-			result.init(data);
-			return result;
-		}
+    delete(id: number): Promise<Product | null> {
+        let url_ = this.baseUrl + "/api/Products/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
 
-		toJSON(data?: any) {
-			data = typeof data === 'object' ? data : {};
-			data['id'] = this.id;
-			data['title'] = this.title;
-			data['url'] = this.url;
-			if (Array.isArray(this.children)) {
-				data['children'] = [];
-				for (let item of this.children) data['children'].push(item.toJSON());
-			}
-			data['parent'] = this.parent ? this.parent.toJSON() : <any>undefined;
-			data['visibleInMenu'] = this.visibleInMenu;
-			data['requiredRole'] = this.requiredRole;
-			data['isSystemPage'] = this.isSystemPage;
-			return data;
-		}
-	}
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
 
-	export enum UserRoles {
-		Administrator = 0
-	}
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processDelete(_response));
+        });
+    }
 
-	export class Product {
-		id!: number;
-		name?: string | undefined;
-		description?: string | undefined;
-		price?: number | undefined;
-		stockQuantity?: number | undefined;
-		productCategory?: ProductCategory | undefined;
-		productFields?: ProductField[] | undefined;
+    protected processDelete(response: Response): Promise<Product | null> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _mappings: { source: any, target: any }[] = [];
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : jsonParse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? Product.fromJS(resultData200, _mappings) : <any>null;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Product | null>(null as any);
+    }
+}
 
-		init(_data?: any) {
-			if (_data) {
-				this.id = _data['id'];
-				this.name = _data['name'];
-				this.description = _data['description'];
-				this.price = _data['price'];
-				this.stockQuantity = _data['stockQuantity'];
-				this.productCategory = _data['productCategory']
-					? ProductCategory.fromJS(_data['productCategory'])
-					: <any>undefined;
-				if (Array.isArray(_data['productFields'])) {
-					this.productFields = [] as any;
-					for (let item of _data['productFields'])
-						this.productFields!.push(ProductField.fromJS(item));
-				}
-			}
-		}
+export class Page {
+    id!: number;
+    title?: string | undefined;
+    url?: string | undefined;
+    children?: Page[] | undefined;
+    parent?: Page | undefined;
+    visibleInMenu!: boolean;
+    requiredRole?: UserRoles | undefined;
+    isSystemPage!: boolean;
 
-		static fromJS(data: any): Product {
-			data = typeof data === 'object' ? data : {};
-			let result = new Product();
-			result.init(data);
-			return result;
-		}
+    init(_data?: any, _mappings?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.title = _data["title"];
+            this.url = _data["url"];
+            if (Array.isArray(_data["children"])) {
+                this.children = [] as any;
+                for (let item of _data["children"])
+                    this.children!.push(Page.fromJS(item, _mappings));
+            }
+            this.parent = _data["parent"] ? Page.fromJS(_data["parent"], _mappings) : <any>undefined;
+            this.visibleInMenu = _data["visibleInMenu"];
+            this.requiredRole = _data["requiredRole"];
+            this.isSystemPage = _data["isSystemPage"];
+        }
+    }
 
-		toJSON(data?: any) {
-			data = typeof data === 'object' ? data : {};
-			data['id'] = this.id;
-			data['name'] = this.name;
-			data['description'] = this.description;
-			data['price'] = this.price;
-			data['stockQuantity'] = this.stockQuantity;
-			data['productCategory'] = this.productCategory
-				? this.productCategory.toJSON()
-				: <any>undefined;
-			if (Array.isArray(this.productFields)) {
-				data['productFields'] = [];
-				for (let item of this.productFields) data['productFields'].push(item.toJSON());
-			}
-			return data;
-		}
-	}
+    static fromJS(data: any, _mappings?: any): Page | null {
+        data = typeof data === 'object' ? data : {};
+        return createInstance<Page>(data, _mappings, Page);
+    }
 
-	export class ProductCategory {
-		id!: number;
-		name?: string | undefined;
-		description?: string | undefined;
-		parentCategory?: ProductCategory | undefined;
-		subcategories?: ProductCategory[] | undefined;
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["title"] = this.title;
+        data["url"] = this.url;
+        if (Array.isArray(this.children)) {
+            data["children"] = [];
+            for (let item of this.children)
+                data["children"].push(item.toJSON());
+        }
+        data["parent"] = this.parent ? this.parent.toJSON() : <any>undefined;
+        data["visibleInMenu"] = this.visibleInMenu;
+        data["requiredRole"] = this.requiredRole;
+        data["isSystemPage"] = this.isSystemPage;
+        return data;
+    }
+}
 
-		init(_data?: any) {
-			if (_data) {
-				this.id = _data['id'];
-				this.name = _data['name'];
-				this.description = _data['description'];
-				this.parentCategory = _data['parentCategory']
-					? ProductCategory.fromJS(_data['parentCategory'])
-					: <any>undefined;
-				if (Array.isArray(_data['subcategories'])) {
-					this.subcategories = [] as any;
-					for (let item of _data['subcategories'])
-						this.subcategories!.push(ProductCategory.fromJS(item));
-				}
-			}
-		}
+export enum UserRoles {
+    Administrator = 0,
+}
 
-		static fromJS(data: any): ProductCategory {
-			data = typeof data === 'object' ? data : {};
-			let result = new ProductCategory();
-			result.init(data);
-			return result;
-		}
+export class Product {
+    id!: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    price?: number | undefined;
+    stockQuantity?: number | undefined;
+    productCategory?: ProductCategory | undefined;
+    productFields?: ProductField[] | undefined;
 
-		toJSON(data?: any) {
-			data = typeof data === 'object' ? data : {};
-			data['id'] = this.id;
-			data['name'] = this.name;
-			data['description'] = this.description;
-			data['parentCategory'] = this.parentCategory ? this.parentCategory.toJSON() : <any>undefined;
-			if (Array.isArray(this.subcategories)) {
-				data['subcategories'] = [];
-				for (let item of this.subcategories) data['subcategories'].push(item.toJSON());
-			}
-			return data;
-		}
-	}
+    init(_data?: any, _mappings?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.price = _data["price"];
+            this.stockQuantity = _data["stockQuantity"];
+            this.productCategory = _data["productCategory"] ? ProductCategory.fromJS(_data["productCategory"], _mappings) : <any>undefined;
+            if (Array.isArray(_data["productFields"])) {
+                this.productFields = [] as any;
+                for (let item of _data["productFields"])
+                    this.productFields!.push(ProductField.fromJS(item, _mappings));
+            }
+        }
+    }
 
-	export class ProductField {
-		id!: number;
-		name?: string | undefined;
-		description?: string | undefined;
-		fieldType?: string | undefined;
-		isEnabled?: boolean | undefined;
-		value?: string | undefined;
+    static fromJS(data: any, _mappings?: any): Product | null {
+        data = typeof data === 'object' ? data : {};
+        return createInstance<Product>(data, _mappings, Product);
+    }
 
-		init(_data?: any) {
-			if (_data) {
-				this.id = _data['id'];
-				this.name = _data['name'];
-				this.description = _data['description'];
-				this.fieldType = _data['fieldType'];
-				this.isEnabled = _data['isEnabled'];
-				this.value = _data['value'];
-			}
-		}
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["price"] = this.price;
+        data["stockQuantity"] = this.stockQuantity;
+        data["productCategory"] = this.productCategory ? this.productCategory.toJSON() : <any>undefined;
+        if (Array.isArray(this.productFields)) {
+            data["productFields"] = [];
+            for (let item of this.productFields)
+                data["productFields"].push(item.toJSON());
+        }
+        return data;
+    }
+}
 
-		static fromJS(data: any): ProductField {
-			data = typeof data === 'object' ? data : {};
-			let result = new ProductField();
-			result.init(data);
-			return result;
-		}
+export class ProductCategory {
+    id!: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    parentCategory?: ProductCategory | undefined;
+    subcategories?: ProductCategory[] | undefined;
 
-		toJSON(data?: any) {
-			data = typeof data === 'object' ? data : {};
-			data['id'] = this.id;
-			data['name'] = this.name;
-			data['description'] = this.description;
-			data['fieldType'] = this.fieldType;
-			data['isEnabled'] = this.isEnabled;
-			data['value'] = this.value;
-			return data;
-		}
-	}
+    init(_data?: any, _mappings?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.parentCategory = _data["parentCategory"] ? ProductCategory.fromJS(_data["parentCategory"], _mappings) : <any>undefined;
+            if (Array.isArray(_data["subcategories"])) {
+                this.subcategories = [] as any;
+                for (let item of _data["subcategories"])
+                    this.subcategories!.push(ProductCategory.fromJS(item, _mappings));
+            }
+        }
+    }
 
-	export class ApiException extends Error {
-		override message: string;
-		status: number;
-		response: string;
-		headers: { [key: string]: any };
-		result: any;
+    static fromJS(data: any, _mappings?: any): ProductCategory | null {
+        data = typeof data === 'object' ? data : {};
+        return createInstance<ProductCategory>(data, _mappings, ProductCategory);
+    }
 
-		constructor(
-			message: string,
-			status: number,
-			response: string,
-			headers: { [key: string]: any },
-			result: any
-		) {
-			super();
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["parentCategory"] = this.parentCategory ? this.parentCategory.toJSON() : <any>undefined;
+        if (Array.isArray(this.subcategories)) {
+            data["subcategories"] = [];
+            for (let item of this.subcategories)
+                data["subcategories"].push(item.toJSON());
+        }
+        return data;
+    }
+}
 
-			this.message = message;
-			this.status = status;
-			this.response = response;
-			this.headers = headers;
-			this.result = result;
-		}
+export class ProductField {
+    id!: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    fieldType?: string | undefined;
+    isEnabled?: boolean | undefined;
+    value?: string | undefined;
 
-		protected isApiException = true;
+    init(_data?: any, _mappings?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.fieldType = _data["fieldType"];
+            this.isEnabled = _data["isEnabled"];
+            this.value = _data["value"];
+        }
+    }
 
-		static isApiException(obj: any): obj is ApiException {
-			return obj.isApiException === true;
-		}
-	}
+    static fromJS(data: any, _mappings?: any): ProductField | null {
+        data = typeof data === 'object' ? data : {};
+        return createInstance<ProductField>(data, _mappings, ProductField);
+    }
 
-	function throwException(
-		message: string,
-		status: number,
-		response: string,
-		headers: { [key: string]: any },
-		result?: any
-	): any {
-		if (result !== null && result !== undefined) throw result;
-		else throw new ApiException(message, status, response, headers, null);
-	}
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["fieldType"] = this.fieldType;
+        data["isEnabled"] = this.isEnabled;
+        data["value"] = this.value;
+        return data;
+    }
+}
 
-	export const window = { fetch: fetch };
+function jsonParse(json: any, reviver?: any) {
+    json = JSON.parse(json, reviver);
+
+    var byid: any = {};
+    var refs: any = [];
+    json = (function recurse(obj: any, prop?: any, parent?: any) {
+        if (typeof obj !== 'object' || !obj)
+            return obj;
+        
+        if ("$ref" in obj) {
+            let ref = obj.$ref;
+            if (ref in byid)
+                return byid[ref];
+            refs.push([parent, prop, ref]);
+            return undefined;
+        } else if ("$id" in obj) {
+            let id = obj.$id;
+            delete obj.$id;
+            if ("$values" in obj)
+                obj = obj.$values;
+            byid[id] = obj;
+        }
+        
+        if (Array.isArray(obj)) {
+            obj = obj.map((v, i) => recurse(v, i, obj));
+        } else {
+            for (var p in obj) {
+                if (obj.hasOwnProperty(p) && obj[p] && typeof obj[p] === 'object')
+                    obj[p] = recurse(obj[p], p, obj);
+            }
+        }
+
+        return obj;
+    })(json);
+
+    for (let i = 0; i < refs.length; i++) {
+        const ref = refs[i];
+        ref[0][ref[1]] = byid[ref[2]];
+    }
+
+    return json;
+}
+
+function createInstance<T>(data: any, mappings: any, type: any): T | null {
+  if (!mappings)
+    mappings = [];
+  if (!data)
+    return null;
+
+  const mappingIndexName = "__mappingIndex";
+  if (data[mappingIndexName])
+    return <T>mappings[data[mappingIndexName]].target;
+
+  data[mappingIndexName] = mappings.length;
+
+  let result: any = new type();
+  mappings.push({ source: data, target: result });
+  result.init(data, mappings);
+  return result;
+}
+
+export class ApiException extends Error {
+    override message: string;
+    status: number;
+    response: string;
+    headers: { [key: string]: any; };
+    result: any;
+
+    constructor(message: string, status: number, response: string, headers: { [key: string]: any; }, result: any) {
+        super();
+
+        this.message = message;
+        this.status = status;
+        this.response = response;
+        this.headers = headers;
+        this.result = result;
+    }
+
+    protected isApiException = true;
+
+    static isApiException(obj: any): obj is ApiException {
+        return obj.isApiException === true;
+    }
+}
+
+function throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): any {
+    throw new ApiException(message, status, response, headers, result);
+}
+
+export class SwaggerResponse<TResult> {
+    status: number;
+    headers: { [key: string]: any };
+    result: TResult;
+
+    constructor(status: number, headers: { [key: string]: any }, result: TResult) {
+        this.status = status;
+        this.headers = headers;
+        this.result = result;
+    }
+}
+
+export const window = { fetch: fetch };
 }

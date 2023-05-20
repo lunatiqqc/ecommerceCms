@@ -18,7 +18,7 @@ namespace cms.Controllers
 
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<Page>>> GetPages()
+        public async Task<ActionResult<IEnumerable<Page>>> Get()
         {
             var pages = await _context.Pages.ToListAsync();
 

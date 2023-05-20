@@ -8,40 +8,35 @@ namespace cms.SeedData
         {
             if (!context.Pages.Any())
             {
-                var dashboardPage = new Page
+                var pages = new List<Page>();
+                var homepage = new Page
                 {
-                    Title = "Dashboard",
-                    Url = "/dashboard",
-                    Children = new List<Page>(),
+                    Title = "home",
+                    Url = "home",
                     VisibleInMenu = true,
-                    IsSystemPage = true
+                    IsSystemPage = false,
+                    Children = new List<Page> { }
                 };
 
-                var ecommercePage = new Page
+                var test = new Page
                 {
-                    Title = "E-commerce",
-                    Url = "/dashboard/ecommerce",
-                    Parent = dashboardPage,
-                    Children = new List<Page>(),
+                    Title = "test",
+                    Url = "test",
                     VisibleInMenu = true,
-                    IsSystemPage = true
-                };
-
-                dashboardPage.Children.Add(ecommercePage);
-
-                var productsPage = new Page
+                    IsSystemPage = false
+                }; 
+                var test2 = new Page
                 {
-                    Title = "Products",
-                    Url = "/dashboard/ecommerce/products",
-                    Parent = ecommercePage,
-                    Children = null,
-                    VisibleInMenu = false,
-                    IsSystemPage = true
+                    Title = "test",
+                    Url = "test",
+                    VisibleInMenu = true,
+                    IsSystemPage = false
                 };
-                ecommercePage.Children.Add(productsPage);
 
+                homepage.Children.Add(test);
 
-                var pages = new List<Page> { dashboardPage };
+                pages.Add(homepage);
+                pages.Add(test2);
 
                 context.Pages.AddRange(pages);
                 context.SaveChanges();

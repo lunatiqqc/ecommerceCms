@@ -1,16 +1,18 @@
-import * as devalue from 'devalue';
-
-export let csr = false;
-
 export async function load() {
 	const productsClient = new CmsClient.ProductsClient();
-	const products = await productsClient.getProducts();
+	const products = await productsClient.get();
 
 	const productModel = new CmsClient.Product();
-	const productKeys = Object.keys(productModel);
+	const productKeys = Object.keys(productModel).map((key) => {
+		return {
+			key: key,
+			type: true ? 'number' : productModel.getFieldType(key as keyof typeof productModel)
+		};
+	});
 
 	return {
-		products: products ? (JSON.parse(JSON.stringify(products)) as typeof products) : null,
-		productKeys: productKeys
+		products: products,
+		productKeys: productKeys,
+		productsClient: JSON.stringify(productsClient)
 	};
 }

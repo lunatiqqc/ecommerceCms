@@ -5,52 +5,6 @@ namespace cms.SeedData
 {
     public static class ProductSeedData
     {
-
-
-        public static void SeedProducts(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ProductCategory>().HasData(
-                   new ProductCategory { Id = 1, Name = "Electronics" },
-                   new ProductCategory { Id = 2, Name = "Home & Garden" },
-                   new ProductCategory { Id = 3, Name = "Clothing" });
-
-            modelBuilder.Entity<ProductField>().HasData(
-            new ProductField { Id = 1, Name = "Brand", FieldType = "Text" },
-            new ProductField { Id = 2, Name = "Model", FieldType = "Text" },
-            new ProductField { Id = 3, Name = "Color", FieldType = "Text" },
-            new ProductField { Id = 4, Name = "Size", FieldType = "Text" });
-
-            modelBuilder.Entity<Product>().HasData(
-            new Product
-            {
-                Id = 1,
-                Name = "Samsung Galaxy S21",
-                Description = "New Samsung phone with advanced features",
-                Price = 999.99m,
-                StockQuantity = 10,
-                ProductCategory = new ProductCategory { Id = 1, Name = "Electronics" },
-            },
-            new Product
-            {
-                Id = 2,
-                Name = "Wooden Dining Table",
-                Description = "Large wooden dining table for the whole family",
-                Price = 799.99m,
-                StockQuantity = 5,
-                ProductCategory = new ProductCategory { Id = 2, Name = "Home & Garden" },
-            },
-            new Product
-            {
-                Id = 3,
-                Name = "Levi's 501 Jeans",
-                Description = "Classic fit jeans for men",
-                Price = 69.99m,
-                StockQuantity = 20,
-                ProductCategory = new ProductCategory { Id = 3, Name = "Clothing" }
-            }
-            );
-
-        }
         public static void SeedProducts(MyDbContext context)
         {
             // Check if products already exist
@@ -85,7 +39,6 @@ namespace cms.SeedData
                 new Product
                 {
                         Name = "Samsung Galaxy S21",
-                        Description = "New Samsung phone with advanced features",
                         Price = 999.99m,
                         StockQuantity = 10,
                         ProductCategory = categories.FirstOrDefault(c => c.Name == "Electronics"),
