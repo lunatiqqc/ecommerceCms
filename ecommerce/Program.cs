@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using cms;
-using System.Reflection.Metadata;
-using Microsoft.Extensions.Configuration;
 using cms.SeedData;
 using System.Text.Json.Serialization;
 
@@ -15,37 +13,50 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddDbContext<MyDbContext>(options =>
+//    options.UseLazyLoadingProxies().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseLazyLoadingProxies().
-    UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseLazyLoadingProxies().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//builder.Services.AddSwaggerDocument();
 
 builder.Services.AddSwaggerDocument();
-
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyHeader()
-               .AllowAnyMethod();
-    });
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://127.0.0.1:5173") // Replace with your client application's URL
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
 });
+
+
+//builder.Services.AddOpenApiDocument(document =>
+//{
+//    document.OperationProcessors.Add(new MyOperationProcessor());
+//});
+
 
 var app = builder.Build();
 
+app.UseCors("AllowSpecificOrigin");
 
 app.UseOpenApi();
 app.UseSwaggerUi3();
-app.UseCors();
+
+//app.UseSwagger();
+
+// This middleware serves the Swagger documentation UI
+//app.UseSwaggerUI(c =>
+//{
+//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API V1");
+//});
 
 
-using (var context = new MyDbContext(new DbContextOptionsBuilder<MyDbContext>().UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).Options))
+using (var context = new MyDbContext(new DbContextOptionsBuilder<MyDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options))
 {
 
     context.Database.EnsureCreated();
