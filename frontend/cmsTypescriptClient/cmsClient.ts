@@ -26,7 +26,12 @@ export class BaseCmsClient {
     }
 }
 
-export class PagesClient extends BaseCmsClient {
+export interface IPagesClient {
+
+    get(): Promise<Page[] | null>;
+}
+
+export class PagesClient extends BaseCmsClient implements IPagesClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -82,7 +87,16 @@ export class PagesClient extends BaseCmsClient {
     }
 }
 
-export class ProductsClient extends BaseCmsClient {
+export interface IProductsClient {
+
+    post(product: Product): Promise<Product>;
+
+    get(): Promise<Product[] | null>;
+
+    delete(id: number): Promise<Product | null>;
+}
+
+export class ProductsClient extends BaseCmsClient implements IProductsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -219,8 +233,8 @@ export class ProductsClient extends BaseCmsClient {
     }
 }
 
-export class Page {
-    id!: number;
+export class Page implements IPage {
+    id?: number | undefined;
     title?: string | undefined;
     url?: string | undefined;
     children?: Page[] | undefined;
@@ -228,6 +242,15 @@ export class Page {
     visibleInMenu!: boolean;
     requiredRole?: UserRoles | undefined;
     isSystemPage!: boolean;
+
+    constructor(data?: IPage) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
 
     init(_data?: any, _mappings?: any) {
         if (_data) {
@@ -269,11 +292,22 @@ export class Page {
     }
 }
 
+export interface IPage {
+    id?: number | undefined;
+    title?: string | undefined;
+    url?: string | undefined;
+    children?: Page[] | undefined;
+    parent?: Page | undefined;
+    visibleInMenu: boolean;
+    requiredRole?: UserRoles | undefined;
+    isSystemPage: boolean;
+}
+
 export enum UserRoles {
     Administrator = 0,
 }
 
-export class Product {
+export class Product implements IProduct {
     id!: number;
     name?: string | undefined;
     description?: string | undefined;
@@ -281,6 +315,15 @@ export class Product {
     stockQuantity?: number | undefined;
     productCategory?: ProductCategory | undefined;
     productFields?: ProductField[] | undefined;
+
+    constructor(data?: IProduct) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
 
     init(_data?: any, _mappings?: any) {
         if (_data) {
@@ -320,12 +363,31 @@ export class Product {
     }
 }
 
-export class ProductCategory {
+export interface IProduct {
+    id: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    price?: number | undefined;
+    stockQuantity?: number | undefined;
+    productCategory?: ProductCategory | undefined;
+    productFields?: ProductField[] | undefined;
+}
+
+export class ProductCategory implements IProductCategory {
     id!: number;
     name?: string | undefined;
     description?: string | undefined;
     parentCategory?: ProductCategory | undefined;
     subcategories?: ProductCategory[] | undefined;
+
+    constructor(data?: IProductCategory) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
 
     init(_data?: any, _mappings?: any) {
         if (_data) {
@@ -361,13 +423,30 @@ export class ProductCategory {
     }
 }
 
-export class ProductField {
+export interface IProductCategory {
+    id: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    parentCategory?: ProductCategory | undefined;
+    subcategories?: ProductCategory[] | undefined;
+}
+
+export class ProductField implements IProductField {
     id!: number;
     name?: string | undefined;
     description?: string | undefined;
     fieldType?: string | undefined;
     isEnabled?: boolean | undefined;
     value?: string | undefined;
+
+    constructor(data?: IProductField) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
 
     init(_data?: any, _mappings?: any) {
         if (_data) {
@@ -395,6 +474,15 @@ export class ProductField {
         data["value"] = this.value;
         return data;
     }
+}
+
+export interface IProductField {
+    id: number;
+    name?: string | undefined;
+    description?: string | undefined;
+    fieldType?: string | undefined;
+    isEnabled?: boolean | undefined;
+    value?: string | undefined;
 }
 
 function jsonParse(json: any, reviver?: any) {

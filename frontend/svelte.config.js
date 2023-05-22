@@ -24,7 +24,8 @@ const config = {
 		//	strict: true
 		//}),
 		alias: {
-			'@/*': './'
+			'@/*': './',
+			'@/routes/*': './src/routes/'
 		}
 	}
 };

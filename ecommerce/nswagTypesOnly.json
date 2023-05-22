@@ -71,7 +71,7 @@
                         "dateTimeType": "Date",
                         "nullValue": "Undefined",
                         "generateClientClasses": true,
-                        "generateClientInterfaces": true,
+                        "generateClientInterfaces": false,
                         "generateOptionalParameters": false,
                         "exportTypes": true,
                         "wrapDtoExceptions": true,
@@ -100,7 +100,7 @@
                         "excludedParameterNames": [],
                         "handleReferences": true,
                         "generateTypeCheckFunctions": false,
-                        "generateConstructorInterface": true,
+                        "generateConstructorInterface": false,
                         "convertConstructorInterfaceData": false,
                         "importRequiredTypes": true,
                         "useGetBaseUrlMethod": false,
@@ -116,7 +116,7 @@
                         "enumNameGeneratorType": null,
                         "serviceHost": "http://localhost:5059",
                         "serviceSchemes": null,
-                        "output": "../frontend/cmsTypescriptClient/cmsClient.ts",
+                        "output": "../frontend/cmsTypescriptClient/cmsClientTypes.ts",
                         "newLineBehavior": "Auto"
                 },
                 "openApiToCSharpClient": {

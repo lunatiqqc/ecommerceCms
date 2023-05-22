@@ -5,6 +5,7 @@ import { CmsClient } from '@/cmsTypescriptClient/cmsClient';
 export async function load() {
 	if (browser) {
 		window.CmsClient = CmsClient;
+		console.log('b');
 	}
 
 	const start = performance.now();
@@ -17,12 +18,8 @@ export async function load() {
 			return arr.indexOf(route) === i;
 		});
 
-	type Item = {
-		title?: string;
-		url?: string;
-		children?: Item[];
-	};
-
+	type Item = CmsClient.IPage;
+	//var item: Item = getProperties(CmsClient.Page);
 	async function generateItems(dirs: string[]): Promise<Item[]> {
 		const result: Item[] = [];
 
@@ -43,7 +40,7 @@ export async function load() {
 						currentLevel.push(...dynamicPages);
 					}
 
-					function updateUrlsRecursively(dynamicPages: Item[], parentUrl) {
+					function updateUrlsRecursively(dynamicPages: Item[], parentUrl: string) {
 						for (const page of dynamicPages) {
 							page.url = parentUrl + '/' + page.url;
 
@@ -56,8 +53,14 @@ export async function load() {
 					let item = currentLevel.find((child) => child.url === currentUrl);
 
 					if (!item) {
-						item = { title: subDir, url: currentUrl, children: [] };
-
+						item = {
+							id: 21,
+							title: subDir,
+							url: currentUrl,
+							children: [],
+							visibleInMenu: false,
+							isSystemPage: true
+						};
 						currentLevel.push(item);
 					}
 
