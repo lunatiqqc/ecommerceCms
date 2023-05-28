@@ -16,13 +16,35 @@ namespace cms
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<ProductField> ProductFields { get; set; }
 
+        public DbSet<GridRow> GridRows { get; set; }
+        public DbSet<GridColumn> GridColumns { get; set; }
+        public DbSet<TextComponent> TextComponents { get; set; }
+        public DbSet<ImageComponent> ImageComponents { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            //modelBuilder.Entity<TextComponent>().ToTable("ComponentBases");
+            //modelBuilder.Entity<ImageComponent>().ToTable("ComponentBases");
             // Seed the database
             //ProductSeedData.SeedProducts(modelBuilder);
+
+            //    modelBuilder.Entity<Component>()
+            //.ToTable("Components")
+            //.HasDiscriminator<string>("Discriminator2")
+            //.HasValue<TextComponent>("TextComponent")
+            //.HasValue<ImageComponent>("ImageComponent");
+
+            modelBuilder.Entity<TextComponent>()
+                .ToTable("TextComponents");
+
+            modelBuilder.Entity<ImageComponent>()
+                .ToTable("ImageComponents");
         }
+
     }
+
 
 }

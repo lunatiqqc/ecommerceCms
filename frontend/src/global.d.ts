@@ -2,16 +2,14 @@ declare module globalThis {
 	var CmsClient: typeof import('@/cmsTypescriptClient/cmsClient').CmsClient;
 }
 
-type NonFunctionPropertyNames<T> = {
-	[K in keyof T]: T[K] extends (...args: any[]) => any
-		? never
-		: T[K] extends Array<infer U>
-		? U extends T
-			? never
-			: K
-		: K extends 'init' | 'fromJS' | 'toJSON'
-		? never
-		: K;
-}[keyof T];
-
-type ClassProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
+declare namespace svelteHTML {
+	// enhance elements
+	interface IntrinsicElements {
+		'my-custom-element': { someattribute: string; 'on:event': (e: CustomEvent<any>) => void };
+	}
+	// enhance attributes
+	interface HTMLAttributes<T> {
+		// If you want to use on:beforeinstallprompt
+		'on:outclick'?: (event: CustomEvent<unknown>) => any;
+	}
+}

@@ -1,0 +1,323 @@
+{
+  "x-generator": "NSwag v13.19.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))",
+  "swagger": "2.0",
+  "info": {
+    "title": "My Title",
+    "version": "1.0.0"
+  },
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/Products": {
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "Products_Post",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "name": "product",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Product"
+            },
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "Products_Get",
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Product"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Products/{id}": {
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "Products_Delete",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          }
+        }
+      }
+    },
+    "/api/Pages": {
+      "post": {
+        "tags": [
+          "Pages"
+        ],
+        "operationId": "Pages_Post",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "title",
+            "in": "query",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "parentId",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Page"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "operationId": "Pages_Get",
+        "responses": {
+          "200": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Page"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Pages/{id}": {
+      "delete": {
+        "tags": [
+          "Pages"
+        ],
+        "operationId": "Pages_Delete",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "x-nullable": false,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Product": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number",
+          "format": "decimal"
+        },
+        "stockQuantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "productCategory": {
+          "$ref": "#/definitions/ProductCategory"
+        },
+        "productFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProductField"
+          }
+        }
+      }
+    },
+    "ProductCategory": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "subcategories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProductCategory"
+          }
+        }
+      }
+    },
+    "ProductField": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "fieldType": {
+          "type": "string"
+        },
+        "isEnabled": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "Page": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Page"
+          }
+        },
+        "visibleInMenu": {
+          "type": "boolean"
+        },
+        "requiredRole": {
+          "$ref": "#/definitions/UserRoles"
+        }
+      }
+    },
+    "UserRoles": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Administrator"
+      ],
+      "enum": [
+        0
+      ]
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "additionalProperties": {},
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

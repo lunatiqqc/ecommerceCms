@@ -14,8 +14,7 @@ namespace cms.SeedData
                     Title = "home",
                     Url = "home",
                     VisibleInMenu = true,
-                    IsSystemPage = false,
-                    Children = new List<Page> { }
+                    Children = new List<Page>()
                 };
 
                 var test = new Page
@@ -23,17 +22,58 @@ namespace cms.SeedData
                     Title = "test",
                     Url = "test",
                     VisibleInMenu = true,
-                    IsSystemPage = false
-                }; 
+                    GridContent = new List<GridRow>()
+                    {
+                        new GridRow()
+                        {
+                            Columns = new List<GridColumn>()
+                            {
+                                new GridColumn()
+                                {
+                                    Width = 6,
+                                    //Component = new TextComponent()
+                                    //{
+                                    //    Text="test--"
+                                    //},
+                                }, new GridColumn()
+                                {
+                                    Width = 6,
+                                    //Component = new ImageComponent()
+                                    //{
+                                    //    ImageUrl = "deeeeeez.png"
+                                    //},
+                                },
+                            }
+                        }
+                    }
+                };
+
                 var test2 = new Page
                 {
-                    Title = "test",
-                    Url = "test",
+                    Title = "test2",
+                    Url = "test2",
                     VisibleInMenu = true,
-                    IsSystemPage = false
+                    GridContent = new List<GridRow>()
+                    {
+                        new GridRow()
+                        {
+                            Columns = new List<GridColumn>()
+                            {
+                                new GridColumn()
+                                {
+                                    Width = 12,
+                                    Component = new TextComponent()
+                                    {
+                                       Text="test2-"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 };
 
                 homepage.Children.Add(test);
+                test.ParentPage = homepage;
 
                 pages.Add(homepage);
                 pages.Add(test2);

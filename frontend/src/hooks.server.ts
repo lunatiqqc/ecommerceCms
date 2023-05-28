@@ -1,3 +1,3 @@
 import { CmsClient } from '@/cmsTypescriptClient/cmsClient';
 
-globalThis.CmsClient = CmsClient;
+globalThis.CmsClient = CmsClient as typeof import('@/cmsTypescriptClient/cmsClient').CmsClient;

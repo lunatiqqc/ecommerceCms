@@ -1,15 +1,8 @@
 export const csr = true;
-import { browser } from '$app/environment';
+export const ssr = true;
 import { CmsClient } from '@/cmsTypescriptClient/cmsClient';
 
 export async function load() {
-	if (browser) {
-		window.CmsClient = CmsClient;
-		console.log('b');
-	}
-
-	const start = performance.now();
-
 	const routes = Object.keys(import.meta.glob('@/src/routes/**/**.svelte'))
 		.map((route) => {
 			return route.split('/+').shift()?.replace('/src/routes', '') || '/';
@@ -23,7 +16,11 @@ export async function load() {
 	async function generateItems(dirs: string[]): Promise<Item[]> {
 		const result: Item[] = [];
 
-		async function processDir(dir: string, currentLevel: Item[]): Promise<void> {
+		async function processDir(
+			dir: string,
+			currentLevel: Item[],
+			parent: Item | undefined
+		): Promise<void> {
 			const dirPath = dir.split('/').filter(Boolean);
 			let currentUrl = '';
 
@@ -54,17 +51,23 @@ export async function load() {
 
 					if (!item) {
 						item = {
-							id: 21,
 							title: subDir,
 							url: currentUrl,
-							children: [],
 							visibleInMenu: false,
 							isSystemPage: true
 						};
 						currentLevel.push(item);
 					}
+					if (item.children) {
+						currentLevel = item.children;
+					} else {
+						item.children = [];
+						currentLevel = item.children;
+					}
 
-					currentLevel = item.children || [];
+					if (item.url == '/dashboard/content/pages') {
+						item.isDynamicPagesRoot = true;
+					}
 				}
 			}
 		}
@@ -77,8 +80,6 @@ export async function load() {
 	}
 
 	const items = await generateItems(routes);
-
-	console.log(performance.now() - start);
 
 	return {
 		endpoints: items

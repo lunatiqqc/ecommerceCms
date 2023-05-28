@@ -1,8 +1,6 @@
 <script lang="ts">
 	//import { Skull } from 'lucide-svelte';
 
-	//console.log(Skull);
-
 	export let data;
 	let editedProducts: Array<number> = [];
 
@@ -50,22 +48,17 @@
 			this.prevValue = originalContent;
 		}
 
-		console.log(this.originalContent, e.target.innerText, JSON.parse(JSON.stringify(e)));
-
 		if (!editedProducts.includes(productIndex) && this.originalContent != e.target.innerText) {
 			editedProducts = [...editedProducts, productIndex];
 		} else if (this.originalContent == e.target.innerText) {
 			editedProducts = editedProducts.filter((index) => {
 				return index !== productIndex;
 			});
-			console.log(editedProducts);
 		}
 	}
 
 	async function handlePostProduct(product) {
 		const res = await productsClient.post(product);
-
-		console.log(res);
 	}
 
 	let hoveredRowIndex = -1;

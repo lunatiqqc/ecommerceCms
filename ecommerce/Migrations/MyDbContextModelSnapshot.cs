@@ -18,11 +18,14 @@ namespace ecommerce.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("cms.Models.Page", b =>
+            modelBuilder.Entity("cms.Models.Component", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,10 +33,66 @@ namespace ecommerce.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsSystemPage")
-                        .HasColumnType("boolean");
+                    b.HasKey("Id");
 
-                    b.Property<int?>("ParentId")
+                    b.ToTable("Component");
+
+                    b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("cms.Models.GridColumn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ComponentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("GridRowId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComponentId");
+
+                    b.HasIndex("GridRowId");
+
+                    b.ToTable("GridColumns");
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("PageId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.ToTable("GridRows");
+                });
+
+            modelBuilder.Entity("cms.Models.Page", b =>
+                {
+                    b.Property<int?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int?>("Id"));
+
+                    b.Property<int?>("ParentPageId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("RequiredRole")
@@ -45,14 +104,14 @@ namespace ecommerce.Migrations
                     b.Property<string>("Url")
                         .HasColumnType("text");
 
-                    b.Property<bool>("VisibleInMenu")
+                    b.Property<bool?>("VisibleInMenu")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages", (string)null);
+                    b.ToTable("Pages");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.Product", b =>
@@ -82,7 +141,7 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("ProductCategoryId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.ProductCategory", b =>
@@ -106,7 +165,7 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("ProductCategories", (string)null);
+                    b.ToTable("ProductCategories");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.ProductField", b =>
@@ -139,16 +198,58 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductFields", (string)null);
+                    b.ToTable("ProductFields");
+                });
+
+            modelBuilder.Entity("cms.Models.ImageComponent", b =>
+                {
+                    b.HasBaseType("cms.Models.Component");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("ImageComponents", (string)null);
+                });
+
+            modelBuilder.Entity("cms.Models.TextComponent", b =>
+                {
+                    b.HasBaseType("cms.Models.Component");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("TextComponents", (string)null);
+                });
+
+            modelBuilder.Entity("cms.Models.GridColumn", b =>
+                {
+                    b.HasOne("cms.Models.Component", "Component")
+                        .WithMany()
+                        .HasForeignKey("ComponentId");
+
+                    b.HasOne("cms.Models.GridRow", null)
+                        .WithMany("Columns")
+                        .HasForeignKey("GridRowId");
+
+                    b.Navigation("Component");
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.HasOne("cms.Models.Page", null)
+                        .WithMany("GridContent")
+                        .HasForeignKey("PageId");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
                 {
-                    b.HasOne("cms.Models.Page", "Parent")
+                    b.HasOne("cms.Models.Page", "ParentPage")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId");
+                        .HasForeignKey("ParentPageId");
 
-                    b.Navigation("Parent");
+                    b.Navigation("ParentPage");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.Product", b =>
@@ -176,9 +277,34 @@ namespace ecommerce.Migrations
                         .HasForeignKey("ProductId");
                 });
 
+            modelBuilder.Entity("cms.Models.ImageComponent", b =>
+                {
+                    b.HasOne("cms.Models.Component", null)
+                        .WithOne()
+                        .HasForeignKey("cms.Models.ImageComponent", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("cms.Models.TextComponent", b =>
+                {
+                    b.HasOne("cms.Models.Component", null)
+                        .WithOne()
+                        .HasForeignKey("cms.Models.TextComponent", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.Navigation("Columns");
+                });
+
             modelBuilder.Entity("cms.Models.Page", b =>
                 {
                     b.Navigation("Children");
+
+                    b.Navigation("GridContent");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.Product", b =>
