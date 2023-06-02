@@ -1,12 +1,14 @@
 {
-  "runtime": "Net70",
-  "defaultVariables": null,
-  "documentGenerator": {
-        "aspNetCoreToOpenApi": {
-                "output": "swaggerUsed.json",
-                "assemblyPaths": [ "bin/Debug/net6.0/ecommerce.dll" ]
-        }
-  },
+        "runtime": "Net70",
+        "defaultVariables": null,
+        "documentGenerator": {
+                "aspNetCoreToOpenApi": {
+                        "output": "swaggerUsed.json",
+                        "assemblyPaths": [
+                                "bin/Debug/net7.0/ecommerce.dll"
+                        ]
+                }
+        },
         "codeGenerators": {
                 "openApiToTypeScriptClient": {
                         "className": "{controller}Client",

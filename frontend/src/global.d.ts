@@ -1,6 +1,6 @@
-declare module globalThis {
-	var CmsClient: typeof import('@/cmsTypescriptClient/cmsClient').CmsClient;
-}
+/// <reference path="../cmsTypescriptClient/cmsClient.ts" />
+
+//declare type Test = import('@/cmsTypescriptClient/cmsClient.ts').CmsClient;
 
 declare namespace svelteHTML {
 	// enhance elements

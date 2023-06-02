@@ -2,6 +2,10 @@ import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/kit/vite';
 import adapterStatic from '@sveltejs/adapter-static';
 
+import { resolve } from 'path';
+
+console.log(resolve);
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
@@ -24,10 +28,17 @@ const config = {
 		//	strict: true
 		//}),
 		alias: {
-			'@/*': './',
-			'@/routes/*': './src/routes/'
+			'@/*': './*',
+			'@/routes/*': 'path/to/my-directory/*'
 		}
+
+		//vite: {
+		//	resolve: {
+		//		alias: {
+		//			'@/*': resolve('./*')
+		//		}
+		//	}
+		//}
 	}
 };
-
 export default config;

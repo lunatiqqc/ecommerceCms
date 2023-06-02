@@ -4,6 +4,8 @@ using cms.Models;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Reflection;
+using NJsonSchema.Converters;
+using System.Runtime.Serialization;
 
 namespace cms.Models
 {
@@ -38,10 +40,14 @@ namespace cms.Models
         }
         public virtual Component? Component { get; set; } // Reference to the component
     }
+
+    [KnownType(typeof(TextComponent))]
+    [KnownType(typeof(ImageComponent))]
     [JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
-    [JsonDerivedType(typeof(TextComponent), "TextComponent")]
+    [JsonDerivedType(typeof(TextComponent), "TextComponent"), ]
     [JsonDerivedType(typeof(ImageComponent), "ImageComponent")]
-    public abstract class Component
+
+    public class Component
     {
         public int Id { get; set; }
         // Common properties for all components

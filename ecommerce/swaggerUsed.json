@@ -135,19 +135,48 @@
           "Pages"
         ],
         "operationId": "Pages_Get",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "\nor\n",
             "content": {
               "application/json": {
+                "schema": {}
+              }
+            },
+            "x-expectedSchemas": [
+              {
+                "description": "",
                 "schema": {
                   "type": "array",
+                  "nullable": true,
                   "items": {
                     "$ref": "#/components/schemas/Page"
                   }
                 }
+              },
+              {
+                "description": "",
+                "schema": {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  ]
+                }
               }
-            }
+            ]
           }
         }
       }
@@ -326,6 +355,7 @@
           },
           "gridContent": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/GridRow"
             }
@@ -352,6 +382,7 @@
           },
           "columns": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/GridColumn"
             }
@@ -370,17 +401,17 @@
             "type": "integer",
             "format": "int32"
           },
-          "baseComponentId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "baseComponent": {
-            "$ref": "#/components/schemas/BaseComponent"
+          "component": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Component"
+              }
+            ]
           }
         }
       },
-      "BaseComponent": {
+      "Component": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -389,6 +420,38 @@
             "format": "int32"
           }
         }
+      },
+      "TextComponent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Component"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ImageComponent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Component"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "imageUrl": {
+                "type": "string"
+              }
+            }
+          }
+        ]
       },
       "ProblemDetails": {
         "type": "object",

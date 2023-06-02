@@ -20,7 +20,7 @@ namespace cms.SeedData
                 var test = new Page
                 {
                     Title = "test",
-                    Url = "test",
+                    Url = "home/test",
                     VisibleInMenu = true,
                     GridContent = new List<GridRow>()
                     {
@@ -31,17 +31,17 @@ namespace cms.SeedData
                                 new GridColumn()
                                 {
                                     Width = 6,
-                                    //Component = new TextComponent()
-                                    //{
-                                    //    Text="test--"
-                                    //},
+                                    Component = new TextComponent()
+                                    {
+                                        Text="test--"
+                                    },
                                 }, new GridColumn()
                                 {
                                     Width = 6,
-                                    //Component = new ImageComponent()
-                                    //{
-                                    //    ImageUrl = "deeeeeez.png"
-                                    //},
+                                    Component = new ImageComponent()
+                                    {
+                                        ImageUrl = "deeeeeez.png"
+                                    },
                                 },
                             }
                         }
@@ -52,6 +52,7 @@ namespace cms.SeedData
                 {
                     Title = "test2",
                     Url = "test2",
+
                     VisibleInMenu = true,
                     GridContent = new List<GridRow>()
                     {

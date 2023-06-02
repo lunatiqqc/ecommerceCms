@@ -62,20 +62,25 @@ namespace cms.Controllers
 
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<Page>>> Get()
+        [SwaggerResponse(typeof(IEnumerable<Page>))]
+        [SwaggerResponse(typeof(Page))]
+        public async Task<ActionResult<IEnumerable<Page>>> Get(string? url)
         {
+            var pages = await _context.Pages.ToListAsync();
 
-            // _context.ChangeTracker.LazyLoadingEnabled = false; // Disable lazy loading
+            if (url != null)
+            {
+                var decodedUrl = Uri.UnescapeDataString(url);
+                var page = pages.Find(p => p.Url == decodedUrl);
+                if (page == null)
+                {
+                    return NotFound();
+                }
 
-            var pages = await _context.Pages
-         //.Include(page => page.GridContent) // Eagerly load GridContent
-         //    .ThenInclude(gridRow => gridRow.Columns) // Eagerly load Columns
-         //        .ThenInclude(gridColumn => gridColumn.Component) // Eagerly load Component
-         .ToListAsync();
-
+                return Ok(page);
+            }
 
             var rootPages = pages.Where(page => page.ParentPage == null).ToList();
-
             return Ok(rootPages);
         }
 

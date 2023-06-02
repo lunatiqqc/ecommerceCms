@@ -1,16 +1,15 @@
 export const csr = true;
 export const ssr = true;
-import { CmsClient } from '@/cmsTypescriptClient/cmsClient';
 
+import test from '@';
 export async function load() {
-	const routes = Object.keys(import.meta.glob('@/src/routes/**/**.svelte'))
+	const routes = Object.keys(import.meta.glob('@/routes/**/**.svelte'))
 		.map((route) => {
 			return route.split('/+').shift()?.replace('/src/routes', '') || '/';
 		})
 		.filter((route, i, arr) => {
 			return arr.indexOf(route) === i;
 		});
-
 	type Item = CmsClient.IPage;
 	//var item: Item = getProperties(CmsClient.Page);
 	async function generateItems(dirs: string[]): Promise<Item[]> {
@@ -32,17 +31,17 @@ export async function load() {
 					const dynamicPages = await pagesClient.get();
 
 					if (dynamicPages && dynamicPages.length > 0) {
-						updateUrlsRecursively(dynamicPages, currentUrl.replace(/\/\[.*?\]/g, ''));
+						const nonDynamicUrl = currentUrl.replace(/\/\[.*?\]/g, '');
+						updateUrlsRecursively(dynamicPages);
 
 						currentLevel.push(...dynamicPages);
-					}
+						function updateUrlsRecursively(dynamicPages: Item[]) {
+							for (const page of dynamicPages) {
+								page.url = nonDynamicUrl + '/' + page.url;
 
-					function updateUrlsRecursively(dynamicPages: Item[], parentUrl: string) {
-						for (const page of dynamicPages) {
-							page.url = parentUrl + '/' + page.url;
-
-							if (page.children && page.children.length) {
-								updateUrlsRecursively(page.children, page.url);
+								if (page.children && page.children.length) {
+									updateUrlsRecursively(page.children);
+								}
 							}
 						}
 					}
