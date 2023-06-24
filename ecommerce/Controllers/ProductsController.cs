@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using cms.ecommerce.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using NSwag.Annotations;
+//using NSwag.Annotations;
 
 namespace cms.ecommerce.Controllers
 {
@@ -19,7 +19,7 @@ namespace cms.ecommerce.Controllers
 
         [HttpPost]
         [Produces("application/json")]
-        [SwaggerResponse(StatusCodes.Status201Created, typeof (Product))]
+        //[SwaggerResponse(StatusCodes.Status201Created, typeof (Product))]
         public async Task<ActionResult<Product>> Post([BindRequired, FromBody] Product product)
         {
             if (product == null)

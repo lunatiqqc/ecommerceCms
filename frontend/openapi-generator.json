@@ -1,0 +1,9 @@
+{
+    "withInterfaces": false,
+    "supportsES6": true,
+    "legacyDiscriminatorBehavior": true,
+    "apiNameSuffix": "Client",
+    "useTags": true,
+    "modelNameSuffix": null,
+    "removeOperationIdPrefix": true
+}

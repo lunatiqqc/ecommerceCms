@@ -48,6 +48,9 @@ namespace ecommerce.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ColumnStart")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ComponentId")
                         .HasColumnType("integer");
 
@@ -206,7 +209,6 @@ namespace ecommerce.Migrations
                     b.HasBaseType("cms.Models.Component");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.ToTable("ImageComponents", (string)null);
@@ -217,7 +219,6 @@ namespace ecommerce.Migrations
                     b.HasBaseType("cms.Models.Component");
 
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.ToTable("TextComponents", (string)null);
@@ -239,7 +240,7 @@ namespace ecommerce.Migrations
             modelBuilder.Entity("cms.Models.GridRow", b =>
                 {
                     b.HasOne("cms.Models.Page", null)
-                        .WithMany("GridContent")
+                        .WithMany("GridRows")
                         .HasForeignKey("PageId");
                 });
 
@@ -304,7 +305,7 @@ namespace ecommerce.Migrations
                 {
                     b.Navigation("Children");
 
-                    b.Navigation("GridContent");
+                    b.Navigation("GridRows");
                 });
 
             modelBuilder.Entity("cms.ecommerce.Models.Product", b =>

@@ -11,11 +11,32 @@
 		<RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
 	</PropertyGroup>
 
-	<Target Name="NSwag" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
-		<Exec WorkingDirectory="$(ProjectDir)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="$(NSwagExe_Net70) run nswag.json" />
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug' And '$(BuildingInsideEfCoreMigrations)' == 'true'">
+		<DefineConstants>DEBUG;TRACE;MIGRATIONS_ENABLED</DefineConstants>
+	</PropertyGroup>
+
+	<!--<Target Name="NSwag" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
+		-->
+	<!--<Exec WorkingDirectory="$(ProjectDir)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="$(NSwagExe_Net70) run nswag.json" />-->
+	<!--
+
+		<Exec Command="dotnet tool restore" />
+
+		<Exec Command="dotnet swagger tofile -output swagger2.json $(OutputPath)ecommerce.dll ecommerce" />
+	</Target>-->
+
+
+	<Target Name="openapi" AfterTargets="Build">
+		<Message Text="generating openapi" Importance="high" />
+		<!--<Exec EnvironmentVariables="DOTNET_ENVIRONMENT=SwaggerBuild" Command="dotnet tool install -version 6.5.0 Swashbuckle.AspNetCore.Cli" />-->
+		<!--<Exec EnvironmentVariables="DOTNET_ENVIRONMENT=SwaggerBuild" Command="dotnet tool restore" />-->
+		<Exec EnvironmentVariables="DOTNET_ENVIRONMENT=SwaggerBuild" Command="dotnet tool run swagger tofile --yaml --output ../frontend/openapi.yaml $(OutputPath)ecommerce.dll v1" />
+		<Exec EnvironmentVariables="DOTNET_ENVIRONMENT=SwaggerBuild" WorkingDirectory="../frontend" Command="node openapi-generator.js" />
+
 	</Target>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.5" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.5" />
@@ -24,16 +45,20 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
-		<PackageReference Include="NSwag.AspNetCore" Version="13.19.0" />
+		<!--<PackageReference Include="NSwag.AspNetCore" Version="13.19.0" />-->
 		<PackageReference Include="NSwag.MSBuild" Version="13.19.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="OneOf" Version="3.0.243" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
 		<MySourceFiles Include="$(TargetDir)\**\*.*" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
-	  <Folder Include="Migrations\" />
+		<Folder Include="Migrations\" />
 	</ItemGroup>
 
 	<!--

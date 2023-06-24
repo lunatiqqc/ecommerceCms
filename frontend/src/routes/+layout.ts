@@ -1,18 +1,17 @@
 export const csr = true;
 export const ssr = true;
 
-import test from '@';
 export async function load() {
-	const routes = Object.keys(import.meta.glob('@/routes/**/**.svelte'))
+	const routes = Object.keys(import.meta.glob('@/src/routes/**/**.svelte'))
 		.map((route) => {
 			return route.split('/+').shift()?.replace('/src/routes', '') || '/';
 		})
 		.filter((route, i, arr) => {
 			return arr.indexOf(route) === i;
 		});
-	type Item = CmsClient.IPage;
+	type Item = globalThis.CmsClient.Page;
 	//var item: Item = getProperties(CmsClient.Page);
-	async function generateItems(dirs: string[]): Promise<Item[]> {
+	async function generateMenuItems(dirs: string[]): Promise<Item[]> {
 		const result: Item[] = [];
 
 		async function processDir(
@@ -28,7 +27,7 @@ export async function load() {
 
 				if (subDir.startsWith('[')) {
 					const pagesClient = new CmsClient.PagesClient();
-					const dynamicPages = await pagesClient.get();
+					const dynamicPages = await pagesClient.getAll();
 
 					if (dynamicPages && dynamicPages.length > 0) {
 						const nonDynamicUrl = currentUrl.replace(/\/\[.*?\]/g, '');
@@ -78,7 +77,7 @@ export async function load() {
 		return result;
 	}
 
-	const items = await generateItems(routes);
+	const items = await generateMenuItems(routes);
 
 	return {
 		endpoints: items

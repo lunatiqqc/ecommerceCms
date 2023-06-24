@@ -2,22 +2,34 @@ using Microsoft.EntityFrameworkCore;
 using cms;
 using cms.SeedData;
 using System.Text.Json.Serialization;
-using NJsonSchema.Generation;
-using Microsoft.Extensions.Options;
-using NJsonSchema;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+
+using Microsoft.AspNetCore.Builder;
+using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Hosting;
+using cms.Models;
+using Microsoft.EntityFrameworkCore.Design;
+using AutoMapper;
+using Castle.Components.DictionaryAdapter.Xml;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
+
 // Add services to the container.
+
+builder.Services.AddAutoMapper(typeof(MappingProfile) /*, ...*/);
 
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    //options.JsonSerializerOptions.IncludeFields = true;
+    options.JsonSerializerOptions.IncludeFields = true;
     //options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 
@@ -37,14 +49,58 @@ builder.Services.AddControllers()
 //    options.UseLazyLoadingProxies().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDbContext<MyDbContext>(options =>
-            options.UseLazyLoadingProxies().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseLazyLoadingProxies().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.EnableSensitiveDataLogging(true);
+});
+
 
 //builder.Services.AddSwaggerDocument();
 
-
-
-builder.Services.AddOpenApiDocument((options) =>
+builder.Services.AddSwaggerGen((options) =>
 {
+    //options.UseInlineDefinitionsForEnums();
+    //options.UseAllOfForInheritance();
+    //
+    //options.SelectSubTypesUsing(baseType =>
+    //    typeof(Program).Assembly.GetTypes().Where(type => type.IsSubclassOf(baseType))
+    //);
+
+    //options.SelectDiscriminatorNameUsing((baseType) => "TypeName");
+    //options.SelectDiscriminatorValueUsing((subType) => subType.Name + "test-subtype-name");
+
+    //options.UseAllOfForInheritance();
+
+    //options.SelectSubTypesUsing(baseType =>
+    //{
+    //    return typeof(Startup).Assembly.GetTypes().Where(type => type.IsSubclassOf(baseType));
+    //})
+
+    options.UseOneOfForPolymorphism();
+    options.SelectDiscriminatorNameUsing((baseType) => "$discriminator");
+    //options.SelectDiscriminatorValueUsing((subType) => subType.Name);
+    //options.SelectSubTypesUsing(baseType =>
+    //{
+    //    if (baseType == typeof(Component))
+    //    {
+    //        return new[]
+    //        {
+    //            typeof(TextComponent),
+    //            typeof(ImageComponent)
+    //        };
+    //    }
+    //    return Enumerable.Empty<Type>();
+    //});
+
+    //options.EnableAnnotations(enableAnnotationsForInheritance: true, enableAnnotationsForPolymorphism: true);
+
+    options.CustomOperationIds(apiDesc =>
+   {
+       return apiDesc.TryGetMethodInfo(out MethodInfo methodInfo) ? (apiDesc.ActionDescriptor.RouteValues["controller"] + "_" + methodInfo.Name) : null;
+   });
+
+    options.AddServer(new OpenApiServer { Url = "http://localhost:5059" }); // Set the desired base URL
+
 
 });
 builder.Services.AddCors(options =>
@@ -68,9 +124,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors("AllowAnyOriginPolicy");
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseOpenApi();
-app.UseSwaggerUi3();
 
 //app.UseSwagger();
 
@@ -79,6 +135,11 @@ app.UseSwaggerUi3();
 //{
 //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API V1");
 //});
+
+string[] commandLineArgs = Environment.GetCommandLineArgs();
+
+bool isExecutingByEfCore = args.Length > 0 && args[0] == "--ef-core";
+
 
 
 using (var context = new MyDbContext(new DbContextOptionsBuilder<MyDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options))
@@ -111,3 +172,62 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+namespace ecommerce
+{
+    public class MyDbContextFactory : IDesignTimeDbContextFactory<MyDbContext>
+    {
+        public MyDbContext CreateDbContext(string[] args)
+        {
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
+            optionsBuilder.UseLazyLoadingProxies().UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+
+            return new MyDbContext(optionsBuilder.Options);
+        }
+    }
+}
+
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        //reateMap<Page, Page>()
+        //       .ForMember(dest => dest.Children, opt => opt.Ignore())
+        //   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
+        //   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+
+
+        CreateMap<Page, Page>().ForMember(dest => dest.Children, opt => opt.Ignore())
+           .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
+           .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+        //CreateMap<GridRow, GridRow>();
+        //CreateMap<GridColumn, GridColumn>();
+        //
+        //// Map Component and its derived types
+        //CreateMap<Component, Component>()
+        //    .Include<TextComponent, TextComponent>()
+        //    .Include<ImageComponent, ImageComponent>();
+        //
+        //CreateMap<TextComponent, TextComponent>();
+        //CreateMap<ImageComponent, ImageComponent>();
+
+        //CreateMap<GridRow, GridRow>()
+        //    .ForMember(dest => dest.Columns, opt => opt.MapFrom(src => src.Columns));
+        //
+        //CreateMap<GridColumn, GridColumn>()
+        //    .ForMember(dest => dest.Component, opt => opt.MapFrom(src => src.Component));
+        //.ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+
+        //CreateMap<Component, Component>()
+        //    .Include<TextComponent, TextComponent>()
+        //    .Include<ImageComponent, ImageComponent>();
+        //
+        //CreateMap<TextComponent, TextComponent>();
+        //CreateMap<ImageComponent, ImageComponent>();
+    }
+}

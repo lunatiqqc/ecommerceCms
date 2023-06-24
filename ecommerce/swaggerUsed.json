@@ -148,35 +148,37 @@
         ],
         "responses": {
           "200": {
-            "description": "\nor\n",
+            "description": "",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Page"
+                }
               }
-            },
-            "x-expectedSchemas": [
-              {
-                "description": "",
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
                 "schema": {
                   "type": "array",
-                  "nullable": true,
                   "items": {
                     "$ref": "#/components/schemas/Page"
                   }
                 }
-              },
-              {
-                "description": "",
-                "schema": {
-                  "nullable": true,
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Page"
-                    }
-                  ]
-                }
               }
-            ]
+            }
           }
         }
       }

@@ -1,5 +1,3 @@
-//import { CmsClient } from '@/cmsTypescriptClient/cmsClient';
-//
-//globalThis.CmsClient = CmsClient; //as typeof import('@/cmsTypescriptClient/cmsClient').CmsClient;
+import * as CmsClient from '@/cmsTypescriptClient/index';
 
-//import { globalThis } from "./global";
+globalThis.CmsClient = CmsClient;

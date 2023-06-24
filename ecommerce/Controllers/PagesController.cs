@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Castle.Core.Resource;
 using cms.Models;
-using NSwag.Annotations;
-using Microsoft.AspNetCore.Components.Web;
-using System.Runtime.InteropServices;
+using ecommerce.Migrations;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+//using NSwag.Annotations;
 
 namespace cms.Controllers
 {
@@ -14,14 +16,19 @@ namespace cms.Controllers
     {
         private readonly MyDbContext _context;
 
-        public PagesController(MyDbContext context)
+        private readonly IMapper _mapper;
+
+        private readonly IConfiguration _configuration;
+
+        public PagesController(MyDbContext context, IMapper mapper, IConfiguration configuration)
         {
             _context = context;
+            _mapper = mapper;
+            _configuration = configuration;
         }
 
         [HttpPost]
         [Produces("application/json")]
-        [ProducesResponseType(201)]
         public async Task<ActionResult<Page>> Post(string title, int? parentId)
         {
             if (string.IsNullOrEmpty(title))
@@ -58,35 +65,71 @@ namespace cms.Controllers
 
             return CreatedAtAction(nameof(Get), new { id = newPage.Id }, newPage);
         }
-
-
         [HttpGet]
         [Produces("application/json")]
-        [SwaggerResponse(typeof(IEnumerable<Page>))]
-        [SwaggerResponse(typeof(Page))]
-        public async Task<ActionResult<IEnumerable<Page>>> Get(string? url)
+        public async Task<ActionResult<Page>> Get(string url)
         {
             var pages = await _context.Pages.ToListAsync();
-
-            if (url != null)
+            var decodedUrl = Uri.UnescapeDataString(url);
+            var page = pages.Find(p => p.Url == decodedUrl);
+            if (page == null)
             {
-                var decodedUrl = Uri.UnescapeDataString(url);
-                var page = pages.Find(p => p.Url == decodedUrl);
-                if (page == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(page);
+                return NotFound();
             }
-
-            var rootPages = pages.Where(page => page.ParentPage == null).ToList();
+            return Ok(page);
+        }
+        [HttpGet]
+        [Route("all")]
+        [Produces("application/json")]
+        public async Task<ActionResult<IEnumerable<Page>>> GetAll()
+        {
+            var pages = await _context.Pages.ToListAsync();
+            var rootPages = pages.Where(page => page.ParentPage == null);
             return Ok(rootPages);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] Page updatedPage)
+        {
+            //_context.Entry(updatedPage).State = EntityState.Detached;
+
+            //_context.ChangeTracker.LazyLoadingEnabled = false;
+            //var existingPage = await _context.Pages.FirstOrDefaultAsync(p => p.Id == id);
+            //
+            //if (existingPage == null) { return NotFound(); }
+
+            _context.Update(updatedPage);
+            //_context.Entry(existingPage).State = EntityState.Detached;
+            //_context.Entry(existingPage.GridRows[0]).State = EntityState.Detached;
+            //_mapper.Map(updatedPage, existingPage);
+            //_context.Update(existingPage);
+            //_context.Update(existingPage);
+
+
+            // Update the GridRows collection
+            //existingPage.GridRows.Find((gridRow) =>  gridRow.Id == id);
+            //existingPage.GridRows.AddRange(updatedPage.GridRows);
+
+            //foreach (var updatedGridRow in updatedPage.GridRows)
+            //{
+            //    var existingGridRow = existingPage.GridRows.FirstOrDefault(g => g.Id == updatedGridRow.Id);
+            //
+            //    if (existingGridRow != null)
+            //    {
+            //        _context.Entry(existingGridRow).CurrentValues.SetValues(updatedGridRow);
+            //    }
+            //    else
+            //    {
+            //        existingPage.GridRows.Add(updatedGridRow);
+            //    }
+            //}
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var page = await _context.Pages.FindAsync(id);

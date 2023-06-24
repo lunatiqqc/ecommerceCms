@@ -2,13 +2,11 @@
 	import Icon from '@iconify/svelte';
 	import type { ComponentProps } from 'svelte/internal';
 
-	import MyComponent from './MyComponent.svelte';
-
 	import tailwindConfig from '@/tailwind.config.js';
 
 	const test = tailwindConfig.theme?.spacing;
 
-	console.log(test);
+	//console.log(test);
 
 	type $$Props = Omit<ComponentProps<Icon>, 'width'>;
 

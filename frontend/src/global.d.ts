@@ -1,6 +1,14 @@
-/// <reference path="../cmsTypescriptClient/cmsClient.ts" />
+//declare module globalThis {
+//	var CmsClient: typeof import('@/cmsTypescriptClient/cmsClient.ts');
+//}
 
-//declare type Test = import('@/cmsTypescriptClient/cmsClient.ts').CmsClient;
+import * as cmsClient from '@/cmsTypescriptClient/index';
+
+declare global {
+	declare module CmsClient {
+		export = cmsClient;
+	}
+}
 
 declare namespace svelteHTML {
 	// enhance elements

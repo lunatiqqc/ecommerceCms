@@ -12,7 +12,7 @@
         "codeGenerators": {
                 "openApiToTypeScriptClient": {
                         "className": "{controller}Client",
-                        "moduleName": "CmsClient",
+                        "moduleName": null,
                         "namespace": null,
                         "typeScriptVersion": 4.3,
                         "template": "Fetch",
