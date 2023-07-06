@@ -6,120 +6,78 @@
 	import { SvelteComponent, each, onMount } from 'svelte/internal';
 	import type { ComponentType, SvelteComponentTyped } from 'svelte/types/runtime/internal/dev.js';
 	import { writable } from 'svelte/store';
-	import { page } from '$app/stores';
+
+	import { allComponents } from '@/stores/allComponents.js';
+	import { stringify } from 'postcss';
 
 	export let data;
 
-	console.log('orig page', data.page);
-
-	//const page = writable(data.page);
-
-	const allComponents = import.meta.glob('@/components/cmsComponents/*', {
-		eager: false,
-		import: 'default'
-	});
-
-	let mounted = false;
-
-	onMount(() => {
-		mounted = true;
-	});
-
-	let newRowRef: [Element?] = [];
-	let rowRefs: [Element?] = [];
-
-	console.log(data.page);
-
-	function handleComponentDragEnd(e: MouseEvent, componentDiscriminator) {
-		const elementDraggedTo = document.elementFromPoint(e.clientX, e.clientY);
-
-		console.log('elementDraggedTo', elementDraggedTo);
-
-		if (!elementDraggedTo) {
-			return;
-		}
-
-		const columnIndexDataOfNewRow = elementDraggedTo.dataset.gridColumnIndexNew;
-
-		if (columnIndexDataOfNewRow) {
-			const columnIndexOfNewRow = parseInt(columnIndexDataOfNewRow);
-			console.log(columnIndexOfNewRow);
-
-			const column = CmsClient.GridColumnFromJSON({
-				component: CmsClient.ComponentFromJSONTyped(
-					{ $discriminator: componentDiscriminator },
-					false
-				),
-				width: 1,
-				columnStart: columnIndexOfNewRow
-			});
-
-			let columns = [];
-
-			columns.push(column);
-
-			if (!data.page.gridRows) {
-				data.page.gridRows = [];
-			}
-			data.page.gridRows = [
-				...data.page.gridRows,
-				CmsClient.GridRowFromJSONTyped({ columns: columns }, true)
-			];
-
-			//return data.page;
-			return;
-		}
-
-		const parentRow = elementDraggedTo.closest('[data-grid-row-index]');
-
-		if (!parentRow) {
-			return;
-		}
-
-		const columnIndexDataOfExistingRow = elementDraggedTo.dataset.gridColumnIndex;
-
-		if (columnIndexDataOfExistingRow) {
-			const columnIndexOfExistingRow = parseInt(columnIndexDataOfExistingRow);
-			console.log('columnIndexOfExistingRow', columnIndexDataOfExistingRow);
-			if (!data.page.gridRows) {
-				data.page.gridRows = [];
-			}
-
-			const originalColumnIndexOfExistingRow = parseInt(
-				elementDraggedTo.dataset.gridColumnOriginalIndex
-			);
-
-			let existingColumns = data.page.gridRows[parentRow.dataset.gridRowIndex].columns;
-
-			let existingColumn = existingColumns[originalColumnIndexOfExistingRow];
-
-			console.log('existingColumn', existingColumn);
-
-			const column = CmsClient.GridColumnFromJSON({
-				component: CmsClient.ComponentFromJSONTyped(
-					{ $discriminator: componentDiscriminator },
-					false
-				),
-				width: 1,
-				columnStart: columnIndexOfExistingRow,
-				id: existingColumn?.id
-			});
-
-			console.log('column', column);
-
-			if (existingColumn) {
-				data.page.gridRows[parentRow.dataset.gridRowIndex].columns[
-					originalColumnIndexOfExistingRow
-				] = column;
-			} else {
-				data.page.gridRows[parentRow.dataset.gridRowIndex].columns = [...existingColumns, column];
-			}
-
-			return;
-		}
-	}
+	console.log('orig page2', data.page);
 
 	let componentDraggedDiscriminator;
+
+	function handleComponentDrop(columnIndex) {
+		console.log('handleComponentDrop');
+
+		if (!componentDraggedDiscriminator) {
+			return;
+		}
+		const column = CmsClient.GridColumnFromJSON({
+			width: 3,
+			columnStart: columnIndex,
+			gridRows: [
+				CmsClient.GridRowFromJSONTyped(
+					{
+						columns: [
+							CmsClient.GridColumnFromJSONTyped(
+								{
+									component: CmsClient.ComponentFromJSONTyped(
+										{ discriminator: componentDraggedDiscriminator },
+										false
+									),
+									columnStart: 0,
+									width: 12
+								},
+								true
+							)
+						]
+					},
+					true
+				)
+			]
+		});
+
+		if (!pageChangeHistory[pageChangeHistory.length - 1 + pageHistoryOffset].gridRows) {
+			pageChangeHistory[pageChangeHistory.length - 1 + pageHistoryOffset].gridRows = [];
+		}
+
+		pageChangeHistory[pageChangeHistory.length - 1 + pageHistoryOffset].gridRows = [
+			...pageChangeHistory[pageChangeHistory.length - 1 + pageHistoryOffset].gridRows,
+			CmsClient.GridRowFromJSONTyped({ columns: [column] }, true)
+		];
+	}
+
+	let pageHistoryOffset = 0;
+
+	let indexOfPageChangeHistory = 0;
+
+	let pageChangeHistory = [data.page];
+
+	function updatePageHistory() {
+		//console.log('pageHistoryWithinUpdate: ', pageChangeHistory, indexOfPageChangeHistory);
+
+		let cloneOfCurrentPage;
+
+		if (indexOfPageChangeHistory == 0) {
+			cloneOfCurrentPage = data.page;
+		} else {
+			cloneOfCurrentPage = structuredClone(pageChangeHistory[pageChangeHistory.length - 1]);
+		}
+		indexOfPageChangeHistory++;
+		pageChangeHistory[indexOfPageChangeHistory] = cloneOfCurrentPage;
+	}
+
+	$: updatePageHistory(pageChangeHistory);
 </script>
 
 <!-- {#if mounted}
@@ -127,11 +85,43 @@
 {/if} -->
 
 <div class="w-full">
+	<button
+		on:click={() => {
+			console.log(data.page);
+		}}>log page</button
+	>
+
+	<button
+		class="p-4 rounded-md bg-red-400 disabled:opacity-50"
+		disabled={!(pageChangeHistory.length - 1 + pageHistoryOffset > 0)}
+		on:click={() => {
+			pageHistoryOffset--;
+		}}>undo</button
+	>
+	{pageHistoryOffset}
+	<button
+		class="p-4 rounded-md bg-green-400 disabled:opacity-50"
+		disabled={pageHistoryOffset === 0}
+		on:click={() => {
+			pageHistoryOffset++;
+		}}>redo</button
+	>
+
 	<div class="w-full grid grid-cols-12 relative">
-		<NestedGridContent {componentDraggedDiscriminator} {rowRefs} page={data.page} {allComponents} />
+		<NestedGridContent
+			{componentDraggedDiscriminator}
+			bind:gridRows={pageChangeHistory[pageChangeHistory.length - 1 + pageHistoryOffset].gridRows}
+		/>
 		<div class="grid col-span-12 grid-cols-12">
 			{#each new Array(12) as number, i}
-				<div data-grid-column-index-new={i} class="aspect-square border-2" />
+				<div
+					data-grid-column-index-new={i}
+					class="aspect-square border-2"
+					on:dragover|preventDefault
+					on:drop={() => {
+						handleComponentDrop(i);
+					}}
+				/>
 			{/each}
 		</div>
 
@@ -145,12 +135,11 @@
 </div>
 
 <ul>
-	{#each Object.keys(allComponents) as key}
+	{#each Object.keys($allComponents) as key}
 		{@const discriminator = key.substring(key.lastIndexOf('/') + 1, key.lastIndexOf('.'))}
 		<li
 			draggable="true"
 			on:dragend={(e) => {
-				handleComponentDragEnd(e, discriminator);
 				componentDraggedDiscriminator = null;
 			}}
 			on:drag={(e) => {

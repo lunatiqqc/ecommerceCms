@@ -1,10 +1,15 @@
 ﻿using AutoMapper;
 using Castle.Core.Resource;
 using cms.Models;
+using ecommerce.Helpers;
 using ecommerce.Migrations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 //using NSwag.Annotations;
 
 namespace cms.Controllers
@@ -76,7 +81,29 @@ namespace cms.Controllers
             {
                 return NotFound();
             }
-            return Ok(page);
+
+	    var options = new JsonSerializerOptions();
+
+	    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+	    options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+	    var serialized = System.Text.Json.JsonSerializer.Serialize(page, options);
+
+	    var filteredSerialized = serialized;
+
+	    // Remove null value items from arrays
+	    ////filteredSerialized = Regex.Replace(filteredSerialized, @",\s*null\s*", string.Empty);
+	    ////filteredSerialized = Regex.Replace(filteredSerialized, @"(?<=\[)\s*null\s*,", string.Empty);
+	    ////filteredSerialized = Regex.Replace(filteredSerialized, @"\[\s*null\s*\]", "[]");
+
+	    return new ContentResult
+	    {
+		Content = filteredSerialized,
+		ContentType = "application/json",
+		//StatusCode = 200
+	    };
+
         }
         [HttpGet]
         [Route("all")]
@@ -85,46 +112,42 @@ namespace cms.Controllers
         {
             var pages = await _context.Pages.ToListAsync();
             var rootPages = pages.Where(page => page.ParentPage == null);
-            return Ok(rootPages);
-        }
+
+            var options = new JsonSerializerOptions();
+
+	    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+	    options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+	    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+
+	    var serialized = System.Text.Json.JsonSerializer.Serialize(rootPages, options);
+
+	    var filteredSerialized = serialized;
+
+	    // Remove null value items from arrays
+	    filteredSerialized = Regex.Replace(filteredSerialized, @",\s*null\s*", string.Empty);
+	    filteredSerialized = Regex.Replace(filteredSerialized, @"(?<=\[)\s*null\s*,", string.Empty);
+	    filteredSerialized = Regex.Replace(filteredSerialized, @"\[\s*null\s*\]", "[]");
+
+
+	    return new ContentResult
+            {
+                Content = filteredSerialized,
+		ContentType = "application/json",
+		//StatusCode = 200
+	    };
+            //return Ok(rootPages);
+	}
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] Page updatedPage)
         {
-            //_context.Entry(updatedPage).State = EntityState.Detached;
 
-            //_context.ChangeTracker.LazyLoadingEnabled = false;
-            //var existingPage = await _context.Pages.FirstOrDefaultAsync(p => p.Id == id);
-            //
-            //if (existingPage == null) { return NotFound(); }
+	    _context.Update(updatedPage);
 
-            _context.Update(updatedPage);
-            //_context.Entry(existingPage).State = EntityState.Detached;
-            //_context.Entry(existingPage.GridRows[0]).State = EntityState.Detached;
-            //_mapper.Map(updatedPage, existingPage);
-            //_context.Update(existingPage);
-            //_context.Update(existingPage);
+            _context.Entry(updatedPage.GridRows[0].Columns[0].GridRows[0]).State = EntityState.Detached;
 
-
-            // Update the GridRows collection
-            //existingPage.GridRows.Find((gridRow) =>  gridRow.Id == id);
-            //existingPage.GridRows.AddRange(updatedPage.GridRows);
-
-            //foreach (var updatedGridRow in updatedPage.GridRows)
-            //{
-            //    var existingGridRow = existingPage.GridRows.FirstOrDefault(g => g.Id == updatedGridRow.Id);
-            //
-            //    if (existingGridRow != null)
-            //    {
-            //        _context.Entry(existingGridRow).CurrentValues.SetValues(updatedGridRow);
-            //    }
-            //    else
-            //    {
-            //        existingPage.GridRows.Add(updatedGridRow);
-            //    }
-            //}
-
-            await _context.SaveChangesAsync();
+	    await _context.SaveChangesAsync();
 
             return Ok();
         }
@@ -174,3 +197,41 @@ namespace cms.Controllers
 
 
 
+public class CustomJsonResult : ActionResult
+{
+    private readonly object _data;
+    private readonly bool _useNewtonsoftJson;
+
+    public CustomJsonResult(object data, bool useNewtonsoftJson = false)
+    {
+	_data = data;
+	_useNewtonsoftJson = useNewtonsoftJson;
+    }
+
+    public override async Task ExecuteResultAsync(ActionContext context)
+    {
+	var response = context.HttpContext.Response;
+
+	if (_useNewtonsoftJson)
+	{
+	    response.ContentType = "application/json";
+	    var serializedData = JsonConvert.SerializeObject(_data);
+	    await response.WriteAsync(serializedData);
+	}
+	else
+	{
+	    response.ContentType = "application/json";
+            var options = new JsonSerializerOptions
+            {
+               
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		    ReferenceHandler = ReferenceHandler.IgnoreCycles
+
+
+	    // Add other options as needed
+	};
+	    var serializedData = System.Text.Json.JsonSerializer.Serialize(_data, options);
+	    await response.WriteAsync(serializedData);
+	}
+    }
+}

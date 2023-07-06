@@ -163,17 +163,17 @@ components:
   schemas:
     Component:
       required:
-        - $discriminator
+        - discriminator
       type: object
       properties:
-        $discriminator:
+        discriminator:
           type: string
         id:
           type: integer
           format: int32
       additionalProperties: false
       discriminator:
-        propertyName: $discriminator
+        propertyName: discriminator
     GridColumn:
       type: object
       properties:
@@ -190,6 +190,11 @@ components:
           oneOf:
             - $ref: '#/components/schemas/TextComponent'
             - $ref: '#/components/schemas/ImageComponent'
+          nullable: true
+        gridRows:
+          type: array
+          items:
+            $ref: '#/components/schemas/GridRow'
           nullable: true
       additionalProperties: false
     GridRow:

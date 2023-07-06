@@ -19,6 +19,12 @@ import {
     GridColumnComponentFromJSONTyped,
     GridColumnComponentToJSON,
 } from './GridColumnComponent';
+import type { GridRow } from './GridRow';
+import {
+    GridRowFromJSON,
+    GridRowFromJSONTyped,
+    GridRowToJSON,
+} from './GridRow';
 
 /**
  * 
@@ -50,6 +56,12 @@ export interface GridColumn {
      * @memberof GridColumn
      */
     component?: GridColumnComponent | null;
+    /**
+     * 
+     * @type {Array<GridRow>}
+     * @memberof GridColumn
+     */
+    gridRows?: Array<GridRow> | null;
 }
 
 /**
@@ -75,6 +87,7 @@ export function GridColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'columnStart': !exists(json, 'columnStart') ? undefined : json['columnStart'],
         'width': !exists(json, 'width') ? undefined : json['width'],
         'component': !exists(json, 'component') ? undefined : GridColumnComponentFromJSON(json['component']),
+        'gridRows': !exists(json, 'gridRows') ? undefined : (json['gridRows'] === null ? null : (json['gridRows'] as Array<any>).map(GridRowFromJSON)),
     };
 }
 
@@ -91,6 +104,7 @@ export function GridColumnToJSON(value?: GridColumn | null): any {
         'columnStart': value.columnStart,
         'width': value.width,
         'component': GridColumnComponentToJSON(value.component),
+        'gridRows': value.gridRows === undefined ? undefined : (value.gridRows === null ? null : (value.gridRows as Array<any>).map(GridRowToJSON)),
     };
 }
 

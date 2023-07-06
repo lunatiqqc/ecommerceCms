@@ -29,7 +29,7 @@ export interface Component {
      * @type {string}
      * @memberof Component
      */
-    $discriminator: string;
+    discriminator: string;
     /**
      * 
      * @type {number}
@@ -43,7 +43,7 @@ export interface Component {
  */
 export function instanceOfComponent(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "$discriminator" in value;
+    isInstance = isInstance && "discriminator" in value;
 
     return isInstance;
 }
@@ -57,16 +57,16 @@ export function ComponentFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         return json;
     }
     if (!ignoreDiscriminator) {
-        if (json['$discriminator'] === 'ImageComponent') {
+        if (json['discriminator'] === 'ImageComponent') {
             return ImageComponentFromJSONTyped(json, true);
         }
-        if (json['$discriminator'] === 'TextComponent') {
+        if (json['discriminator'] === 'TextComponent') {
             return TextComponentFromJSONTyped(json, true);
         }
     }
     return {
         
-        '$discriminator': json['$discriminator'],
+        'discriminator': json['discriminator'],
         'id': !exists(json, 'id') ? undefined : json['id'],
     };
 }
@@ -80,7 +80,7 @@ export function ComponentToJSON(value?: Component | null): any {
     }
     return {
         
-        '$discriminator': value.$discriminator,
+        'discriminator': value.discriminator,
         'id': value.id,
     };
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using cms;
@@ -11,9 +12,11 @@ using cms;
 namespace ecommerce.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230625085621_pages nested grid rows")]
+    partial class pagesnestedgridrows
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,22 +28,7 @@ namespace ecommerce.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GridColumnGridRow", b =>
-                {
-                    b.Property<int>("ColumnsId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("GridRowsId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ColumnsId", "GridRowsId");
-
-                    b.HasIndex("GridRowsId");
-
-                    b.ToTable("GridColumnGridRow");
-                });
-
-            modelBuilder.Entity("cms.Models.Component", b =>
+            modelBuilder.Entity("cms.Models.ColumnContent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -50,7 +38,7 @@ namespace ecommerce.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Component");
+                    b.ToTable("ColumnContent");
 
                     b.UseTptMappingStrategy();
                 });
@@ -63,10 +51,16 @@ namespace ecommerce.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ColumnContentId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ColumnStart")
                         .HasColumnType("integer");
 
                     b.Property<int?>("ComponentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("GridRowId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Width")
@@ -74,27 +68,13 @@ namespace ecommerce.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ColumnContentId");
+
                     b.HasIndex("ComponentId");
 
+                    b.HasIndex("GridRowId");
+
                     b.ToTable("GridColumns");
-                });
-
-            modelBuilder.Entity("cms.Models.GridRow", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("PageId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PageId");
-
-                    b.ToTable("GridRows");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
@@ -214,6 +194,25 @@ namespace ecommerce.Migrations
                     b.ToTable("ProductFields");
                 });
 
+            modelBuilder.Entity("cms.Models.Component", b =>
+                {
+                    b.HasBaseType("cms.Models.ColumnContent");
+
+                    b.ToTable("Component");
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.HasBaseType("cms.Models.ColumnContent");
+
+                    b.Property<int?>("PageId")
+                        .HasColumnType("integer");
+
+                    b.HasIndex("PageId");
+
+                    b.ToTable("GridRows");
+                });
+
             modelBuilder.Entity("cms.Models.ImageComponent", b =>
                 {
                     b.HasBaseType("cms.Models.Component");
@@ -234,35 +233,23 @@ namespace ecommerce.Migrations
                     b.ToTable("TextComponents", (string)null);
                 });
 
-            modelBuilder.Entity("GridColumnGridRow", b =>
-                {
-                    b.HasOne("cms.Models.GridColumn", null)
-                        .WithMany()
-                        .HasForeignKey("ColumnsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("cms.Models.GridRow", null)
-                        .WithMany()
-                        .HasForeignKey("GridRowsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("cms.Models.GridColumn", b =>
                 {
+                    b.HasOne("cms.Models.ColumnContent", "ColumnContent")
+                        .WithMany()
+                        .HasForeignKey("ColumnContentId");
+
                     b.HasOne("cms.Models.Component", "Component")
                         .WithMany()
                         .HasForeignKey("ComponentId");
 
-                    b.Navigation("Component");
-                });
+                    b.HasOne("cms.Models.GridRow", null)
+                        .WithMany("Columns")
+                        .HasForeignKey("GridRowId");
 
-            modelBuilder.Entity("cms.Models.GridRow", b =>
-                {
-                    b.HasOne("cms.Models.Page", null)
-                        .WithMany("GridRows")
-                        .HasForeignKey("PageId");
+                    b.Navigation("ColumnContent");
+
+                    b.Navigation("Component");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
@@ -299,6 +286,13 @@ namespace ecommerce.Migrations
                         .HasForeignKey("ProductId");
                 });
 
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.HasOne("cms.Models.Page", null)
+                        .WithMany("GridRows")
+                        .HasForeignKey("PageId");
+                });
+
             modelBuilder.Entity("cms.Models.ImageComponent", b =>
                 {
                     b.HasOne("cms.Models.Component", null)
@@ -332,6 +326,11 @@ namespace ecommerce.Migrations
             modelBuilder.Entity("cms.ecommerce.Models.ProductCategory", b =>
                 {
                     b.Navigation("Subcategories");
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.Navigation("Columns");
                 });
 #pragma warning restore 612, 618
         }

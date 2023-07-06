@@ -14,6 +14,8 @@ using cms.Models;
 using Microsoft.EntityFrameworkCore.Design;
 using AutoMapper;
 using Castle.Components.DictionaryAdapter.Xml;
+using System.Text.Json;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,13 +31,15 @@ builder.Services.AddControllers()
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    options.JsonSerializerOptions.IncludeFields = true;
-    //options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    //options.JsonSerializerOptions.IncludeFields = true;
+    //options.JsonSerializerOptions.Converters.Add(new CustomGridRowListConverter());
     //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 
     //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     //options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
 });
+
+
 //.AddNewtonsoftJson(options =>
 //{
 //    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -77,7 +81,7 @@ builder.Services.AddSwaggerGen((options) =>
     //})
 
     options.UseOneOfForPolymorphism();
-    options.SelectDiscriminatorNameUsing((baseType) => "$discriminator");
+    options.SelectDiscriminatorNameUsing((baseType) => "discriminator");
     //options.SelectDiscriminatorValueUsing((subType) => subType.Name);
     //options.SelectSubTypesUsing(baseType =>
     //{
@@ -106,12 +110,12 @@ builder.Services.AddSwaggerGen((options) =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAnyOriginPolicy",
-        builder =>
-        {
-            builder.AllowAnyOrigin() // Replace with your client application's URL
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
+	builder =>
+	{
+	    builder.AllowAnyOrigin() // Replace with your client application's URL
+		.AllowAnyMethod()
+		.AllowAnyHeader();
+	});
 });
 
 
@@ -142,30 +146,44 @@ bool isExecutingByEfCore = args.Length > 0 && args[0] == "--ef-core";
 
 
 
-using (var context = new MyDbContext(new DbContextOptionsBuilder<MyDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options))
-{
-
-    context.Database.EnsureCreated();
-
-    // Remove all existing pages
-    context.GridRows.RemoveRange(context.GridRows);
-    context.GridColumns.RemoveRange(context.GridColumns);
-    context.Pages.RemoveRange(context.Pages);
-    context.ImageComponents.RemoveRange(context.ImageComponents);
-    context.TextComponents.RemoveRange(context.TextComponents);
-    context.SaveChanges();
-
-    PageSeedData.SeedPages(context);
-
-    // Remove all the products, product fields, and product categories
-    context.Products.RemoveRange(context.Products);
-    context.ProductFields.RemoveRange(context.ProductFields);
-    context.ProductCategories.RemoveRange(context.ProductCategories);
-    context.SaveChanges();
-
-    ProductSeedData.SeedProducts(context);
-
-}
+//using (var context = new MyDbContext(new DbContextOptionsBuilder<MyDbContext>().UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).Options))
+//{
+//
+//    context.Database.EnsureCreated();
+//
+//    context.ImageComponents.RemoveRange(context.ImageComponents);
+//    context.TextComponents.RemoveRange(context.TextComponents);
+//    context.GridColumns.RemoveRange(context.GridColumns);
+//
+//    // Remove all existing grid rows
+//    context.GridRows.RemoveRange(context.GridRows);
+//
+//    foreach (var gridRow in context.GridRows)
+//    {
+//	if (gridRow.Columns != null)
+//	{
+//	    gridRow.Columns.Clear();
+//	}
+//    }
+//
+//    // Remove all existing pages
+//    context.Pages.RemoveRange(context.Pages);
+//
+//    // Remove other related entities
+//
+//    context.SaveChanges();
+//
+//    PageSeedData.SeedPages(context);
+//
+//    // Remove all the products, product fields, and product categories
+//    context.Products.RemoveRange(context.Products);
+//    context.ProductFields.RemoveRange(context.ProductFields);
+//    context.ProductCategories.RemoveRange(context.ProductCategories);
+//    context.SaveChanges();
+//
+//    ProductSeedData.SeedProducts(context);
+//
+//}
 
 app.UseAuthorization();
 
@@ -177,18 +195,18 @@ namespace ecommerce
 {
     public class MyDbContextFactory : IDesignTimeDbContextFactory<MyDbContext>
     {
-        public MyDbContext CreateDbContext(string[] args)
-        {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
+	public MyDbContext CreateDbContext(string[] args)
+	{
+	    IConfigurationRoot configuration = new ConfigurationBuilder()
+		.SetBasePath(Directory.GetCurrentDirectory())
+		.AddJsonFile("appsettings.json")
+		.Build();
 
-            var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
-            optionsBuilder.UseLazyLoadingProxies().UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+	    var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
+	    optionsBuilder.UseLazyLoadingProxies().UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
 
-            return new MyDbContext(optionsBuilder.Options);
-        }
+	    return new MyDbContext(optionsBuilder.Options);
+	}
     }
 }
 
@@ -196,38 +214,62 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        //reateMap<Page, Page>()
-        //       .ForMember(dest => dest.Children, opt => opt.Ignore())
-        //   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
-        //   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+	//reateMap<Page, Page>()
+	//       .ForMember(dest => dest.Children, opt => opt.Ignore())
+	//   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
+	//   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
 
 
-        CreateMap<Page, Page>().ForMember(dest => dest.Children, opt => opt.Ignore())
-           .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
-           .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
-        //CreateMap<GridRow, GridRow>();
-        //CreateMap<GridColumn, GridColumn>();
-        //
-        //// Map Component and its derived types
-        //CreateMap<Component, Component>()
-        //    .Include<TextComponent, TextComponent>()
-        //    .Include<ImageComponent, ImageComponent>();
-        //
-        //CreateMap<TextComponent, TextComponent>();
-        //CreateMap<ImageComponent, ImageComponent>();
+	CreateMap<Page, Page>().ForMember(dest => dest.Children, opt => opt.Ignore())
+	   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
+	   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+	//CreateMap<GridRow, GridRow>();
+	//CreateMap<GridColumn, GridColumn>();
+	//
+	//// Map Component and its derived types
+	//CreateMap<Component, Component>()
+	//    .Include<TextComponent, TextComponent>()
+	//    .Include<ImageComponent, ImageComponent>();
+	//
+	//CreateMap<TextComponent, TextComponent>();
+	//CreateMap<ImageComponent, ImageComponent>();
 
-        //CreateMap<GridRow, GridRow>()
-        //    .ForMember(dest => dest.Columns, opt => opt.MapFrom(src => src.Columns));
-        //
-        //CreateMap<GridColumn, GridColumn>()
-        //    .ForMember(dest => dest.Component, opt => opt.MapFrom(src => src.Component));
-        //.ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+	//CreateMap<GridRow, GridRow>()
+	//    .ForMember(dest => dest.Columns, opt => opt.MapFrom(src => src.Columns));
+	//
+	//CreateMap<GridColumn, GridColumn>()
+	//    .ForMember(dest => dest.Component, opt => opt.MapFrom(src => src.Component));
+	//.ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
 
-        //CreateMap<Component, Component>()
-        //    .Include<TextComponent, TextComponent>()
-        //    .Include<ImageComponent, ImageComponent>();
-        //
-        //CreateMap<TextComponent, TextComponent>();
-        //CreateMap<ImageComponent, ImageComponent>();
+	//CreateMap<Component, Component>()
+	//    .Include<TextComponent, TextComponent>()
+	//    .Include<ImageComponent, ImageComponent>();
+	//
+	//CreateMap<TextComponent, TextComponent>();
+	//CreateMap<ImageComponent, ImageComponent>();
+    }
+}
+
+public class CustomGridRowListConverter : JsonConverter<List<GridRow>>
+{
+    public override List<GridRow> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+	// Implement deserialization logic here
+	throw new NotImplementedException();
+    }
+
+    public override void Write(Utf8JsonWriter writer, List<GridRow> value, JsonSerializerOptions options)
+    {
+	writer.WriteStartArray();
+	foreach (var item in value)
+	{
+	    if (item != null)
+	    {
+		var newOptions = new JsonSerializerOptions(options);
+		newOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+		JsonSerializer.Serialize(writer, item, newOptions);
+	    }
+	}
+	writer.WriteEndArray();
     }
 }

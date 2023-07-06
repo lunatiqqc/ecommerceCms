@@ -1,23 +1,24 @@
 <script lang="ts">
-	export let column;
+	import { allComponents } from '@/stores/allComponents.js';
+
+	export let modifiedGridColumn: { originalIndex: number; content: CmsClient.GridColumn };
 	export let rowColumnIndex;
-	export let allComponents;
-	export let rowIndex;
-	export let page;
 	export let componentDraggedDiscriminator;
+	export let gridRows;
 
 	let hoveredSide;
 	let hoveredSideWithComponent;
 
 	async function getComponent(
-		discriminator: CmsClient.Component['$discriminator']
+		discriminator: CmsClient.Component['discriminator']
 	): Promise<ComponentType> {
-		const component = allComponents['/components/cmsComponents/' + discriminator + '.svelte'];
+		const component = $allComponents['/components/cmsComponents/' + discriminator + '.svelte'];
 
 		return component();
 	}
 
 	function handleMouseMoveOver(event, rowIndex, columnStart, columnWidth) {
+		return;
 		console.log('Move');
 
 		const { clientX, clientY, target } = event;
@@ -41,7 +42,7 @@
 		if (distanceLeft <= threshold || clientX < left) {
 			if (
 				columnStart - 1 > 0 &&
-				!page.gridRows[rowIndex].columns?.find((column) => {
+				!gridRows[rowIndex].columns?.find((column) => {
 					return (
 						columnStart - 1 >= column.columnStart &&
 						columnStart - 1 <= column.columnStart + column.width - 1
@@ -64,7 +65,7 @@
 		if (distanceRight <= threshold || clientX > left + width) {
 			if (
 				columnStart + 1 + columnWidth - 1 <= 11 &&
-				!page.gridRows[rowIndex].columns?.find((column) => {
+				!gridRows[rowIndex].columns?.find((column) => {
 					return column.columnStart === columnStart + columnWidth - 1 + 1;
 				})
 			) {
@@ -133,13 +134,13 @@
 </script>
 
 <div
-	data-grid-column-original-index={column.orignalIndex}
+	data-grid-column-original-index={modifiedGridColumn.originalIndex}
 	data-grid-column-index={rowColumnIndex}
-	class="grid__column relative col-span-{column.content.width} 
-	col-start-{column.content.columnStart + 1} bg-white p-4 border-2 z-10 overflow-hidden
+	class="grid__column relative col-span-{modifiedGridColumn.content.width} 
+	col-start-{modifiedGridColumn.content.columnStart + 1} overflow-hidden
 	{borderHoverCursorClass[hoveredSide]}
 	{borderHoverWithComponentClass[hoveredSideWithComponent]}
-	transition-[border-width]
+	transition-[border-width] bg-green-200 p-4
 	"
 	on:mousedown={(e) => {
 		mouseDragStartPosition = e.clientX;
@@ -150,21 +151,31 @@
 		mouseDown = false;
 	}}
 	on:mousemove={(e) => {
-		handleMouseMoveOver.call({}, e, rowIndex, column.content.columnStart, column.content.width);
+		handleMouseMoveOver.call(
+			{},
+			e,
+			modifiedGridColumn.content.columnStart,
+			modifiedGridColumn.content.width
+		);
 	}}
 	on:mouseleave={() => {
 		mouseDown = false;
 		hoveredSide = null;
 	}}
 	on:dragover={(e) => {
-		handleMouseMoveOver.call({}, e, rowIndex, column.content.columnStart, column.content.width);
+		handleMouseMoveOver.call(
+			{},
+			e,
+			modifiedGridColumn.content.columnStart,
+			modifiedGridColumn.content.width
+		);
 	}}
 	on:dragleave={() => {
 		hoveredSideWithComponent = null;
 	}}
 >
-	{#await getComponent(column.content.component.$discriminator) then module}
-		<svelte:component this={module} {...column.content.component} />
+	{#await getComponent(modifiedGridColumn.content.component.discriminator) then module}
+		<svelte:component this={module} {...modifiedGridColumn.content.component} />
 	{/await}
 </div>
 

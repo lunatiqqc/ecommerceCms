@@ -15,7 +15,6 @@ namespace cms
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<ProductField> ProductFields { get; set; }
-
         public DbSet<GridRow> GridRows { get; set; }
         public DbSet<GridColumn> GridColumns { get; set; }
         public DbSet<TextComponent> TextComponents { get; set; }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using cms;
@@ -11,9 +12,11 @@ using cms;
 namespace ecommerce.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230625152520_test page nested list null2")]
+    partial class testpagenestedlistnull2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,7 +28,7 @@ namespace ecommerce.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GridColumnGridRow", b =>
+            modelBuilder.Entity("NestedGridColumnNestedGridRow", b =>
                 {
                     b.Property<int>("ColumnsId")
                         .HasColumnType("integer");
@@ -37,7 +40,7 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("GridRowsId");
 
-                    b.ToTable("GridColumnGridRow");
+                    b.ToTable("NestedGridColumnNestedGridRow");
                 });
 
             modelBuilder.Entity("cms.Models.Component", b =>
@@ -66,7 +69,7 @@ namespace ecommerce.Migrations
                     b.Property<int>("ColumnStart")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ComponentId")
+                    b.Property<int?>("GridRowId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Width")
@@ -74,7 +77,7 @@ namespace ecommerce.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ComponentId");
+                    b.HasIndex("GridRowId");
 
                     b.ToTable("GridColumns");
                 });
@@ -95,6 +98,48 @@ namespace ecommerce.Migrations
                     b.HasIndex("PageId");
 
                     b.ToTable("GridRows");
+                });
+
+            modelBuilder.Entity("cms.Models.NestedGridColumn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ColumnStart")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ComponentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComponentId");
+
+                    b.ToTable("NestedGridColumn");
+                });
+
+            modelBuilder.Entity("cms.Models.NestedGridRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("GridColumnId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GridColumnId");
+
+                    b.ToTable("NestedGridRow");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
@@ -234,15 +279,15 @@ namespace ecommerce.Migrations
                     b.ToTable("TextComponents", (string)null);
                 });
 
-            modelBuilder.Entity("GridColumnGridRow", b =>
+            modelBuilder.Entity("NestedGridColumnNestedGridRow", b =>
                 {
-                    b.HasOne("cms.Models.GridColumn", null)
+                    b.HasOne("cms.Models.NestedGridColumn", null)
                         .WithMany()
                         .HasForeignKey("ColumnsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("cms.Models.GridRow", null)
+                    b.HasOne("cms.Models.NestedGridRow", null)
                         .WithMany()
                         .HasForeignKey("GridRowsId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -251,11 +296,9 @@ namespace ecommerce.Migrations
 
             modelBuilder.Entity("cms.Models.GridColumn", b =>
                 {
-                    b.HasOne("cms.Models.Component", "Component")
-                        .WithMany()
-                        .HasForeignKey("ComponentId");
-
-                    b.Navigation("Component");
+                    b.HasOne("cms.Models.GridRow", null)
+                        .WithMany("Columns")
+                        .HasForeignKey("GridRowId");
                 });
 
             modelBuilder.Entity("cms.Models.GridRow", b =>
@@ -263,6 +306,22 @@ namespace ecommerce.Migrations
                     b.HasOne("cms.Models.Page", null)
                         .WithMany("GridRows")
                         .HasForeignKey("PageId");
+                });
+
+            modelBuilder.Entity("cms.Models.NestedGridColumn", b =>
+                {
+                    b.HasOne("cms.Models.Component", "Component")
+                        .WithMany()
+                        .HasForeignKey("ComponentId");
+
+                    b.Navigation("Component");
+                });
+
+            modelBuilder.Entity("cms.Models.NestedGridRow", b =>
+                {
+                    b.HasOne("cms.Models.GridColumn", null)
+                        .WithMany("GridRows")
+                        .HasForeignKey("GridColumnId");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
@@ -315,6 +374,16 @@ namespace ecommerce.Migrations
                         .HasForeignKey("cms.Models.TextComponent", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("cms.Models.GridColumn", b =>
+                {
+                    b.Navigation("GridRows");
+                });
+
+            modelBuilder.Entity("cms.Models.GridRow", b =>
+                {
+                    b.Navigation("Columns");
                 });
 
             modelBuilder.Entity("cms.Models.Page", b =>
