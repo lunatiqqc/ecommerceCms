@@ -1,11 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import dynamicImport from 'vite-plugin-dynamic-import';
 
 import path from 'path';
 
 export default defineConfig({
-	plugins: [sveltekit(), dynamicImport(/* options */)],
+	plugins: [sveltekit()],
 	server: {
 		fs: {
 			allow: ['.']
@@ -13,8 +12,11 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@': path.resolve(__dirname)
+			'@': path.resolve(__dirname, 'src')
 		},
 		extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json', '.svelte']
+	},
+	build: {
+		minify: false
 	}
 });

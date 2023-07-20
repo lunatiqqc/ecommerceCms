@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using Castle.Core.Resource;
-using cms.Models;
+using cms.models;
 using ecommerce.Helpers;
 using ecommerce.Migrations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -34,20 +36,20 @@ namespace cms.Controllers
 
         [HttpPost]
         [Produces("application/json")]
-        public async Task<ActionResult<Page>> Post(string title, int? parentId)
+        public async Task<ActionResult<Page>> Post(string url, int? parentId)
         {
-            if (string.IsNullOrEmpty(title))
+            if (string.IsNullOrEmpty(url))
             {
-                return BadRequest("Title is required.");
+                return BadRequest("url is required.");
             }
 
 
-            var newPage = new Page
-            {
-                Title = title,
+            Page newPage = new()
+	    {
+                Title = url,
                 VisibleInMenu = false,
-                Url = title
-            };
+                Url = url
+	    };
 
             if (parentId != null)
             {
@@ -59,7 +61,15 @@ namespace cms.Controllers
                     parentPage != null)
                 {
                     newPage.ParentPage = parentPage;
-                    parentPage.Children ??= new List<Page>();
+                    if (parentPage.Url != "/")
+                    { 
+                    newPage.Url = parentPage.Url + "/" + url;
+		    }
+                    else
+                    {
+                        newPage.Url = url;
+                    }
+		    parentPage.Children ??= new List<Page>();
                     parentPage.Children.Add(newPage);
                 }
 
@@ -85,7 +95,7 @@ namespace cms.Controllers
 	    var options = new JsonSerializerOptions();
 
 	    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-	    options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+	   // options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
 	    var serialized = System.Text.Json.JsonSerializer.Serialize(page, options);
@@ -111,12 +121,12 @@ namespace cms.Controllers
         public async Task<ActionResult<IEnumerable<Page>>> GetAll()
         {
             var pages = await _context.Pages.ToListAsync();
-            var rootPages = pages.Where(page => page.ParentPage == null);
+            var rootPages = pages.Where(page => page.ParentPage == null).OrderBy((page) => page.Title).ToList();
 
             var options = new JsonSerializerOptions();
 
 	    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-	    options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+	    //options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 	    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
 
@@ -125,9 +135,9 @@ namespace cms.Controllers
 	    var filteredSerialized = serialized;
 
 	    // Remove null value items from arrays
-	    filteredSerialized = Regex.Replace(filteredSerialized, @",\s*null\s*", string.Empty);
-	    filteredSerialized = Regex.Replace(filteredSerialized, @"(?<=\[)\s*null\s*,", string.Empty);
-	    filteredSerialized = Regex.Replace(filteredSerialized, @"\[\s*null\s*\]", "[]");
+	   //filteredSerialized = Regex.Replace(filteredSerialized, @",\s*null\s*", string.Empty);
+	   //filteredSerialized = Regex.Replace(filteredSerialized, @"(?<=\[)\s*null\s*,", string.Empty);
+	   //filteredSerialized = Regex.Replace(filteredSerialized, @"\[\s*null\s*\]", "[]");
 
 
 	    return new ContentResult
@@ -142,14 +152,16 @@ namespace cms.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] Page updatedPage)
         {
-
 	    _context.Update(updatedPage);
-
-            _context.Entry(updatedPage.GridRows[0].Columns[0].GridRows[0]).State = EntityState.Detached;
 
 	    await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+        private void detachNullNavigationProperties()
+        {
+
         }
 
         [HttpDelete("{id}")]
@@ -188,6 +200,14 @@ namespace cms.Controllers
                 _context.Pages.Remove(page);
             }
         }
+	[HttpDelete("deleteGridRows")]
+	public async Task<IActionResult> DeleteGridRows([FromBody] IEnumerable<int> ids)
+	{
+	    _context.GridRows.Where(b => ids.Contains(b.Id)).ExecuteDelete();
+	    await _context.SaveChangesAsync();
+
+	    return NoContent();
+	}
     }
 }
 

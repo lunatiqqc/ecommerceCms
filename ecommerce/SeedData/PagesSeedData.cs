@@ -1,5 +1,5 @@
-﻿using cms.Models;
-using cms.Users;
+﻿using cms.models;
+using cms;
 namespace cms.SeedData
 {
     public static class PageSeedData
@@ -175,25 +175,7 @@ namespace cms.SeedData
 		{
 		    Title = "test",
 		    Url = "home/test",
-		    VisibleInMenu = true,
-		    GridRows = new List<GridRow>()
-		    {
-			new GridRow()
-			{
-			    Columns = new List<GridColumn>()
-			    {
-				new GridColumn()
-				{
-				    Width = 6,
-				    Component = new TextComponent()
-				    {
-					Text="test--"
-				    },
-				    GridRows = null,
-				},
-			    }
-			}
-		    }
+		    VisibleInMenu = true
 		};
 
 		//var test2 = new Page

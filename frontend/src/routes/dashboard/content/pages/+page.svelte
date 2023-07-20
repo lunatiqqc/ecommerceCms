@@ -1,1 +1,1 @@
-contentpages
+pages

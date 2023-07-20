@@ -13,6 +13,7 @@ export default {
 		{
 			pattern: /col-start-([1-9]|1[0-2])/
 		}
-	]
+	],
+	darkMode: ['class', '[class="light"]']
 	// These paths are just examples, customize them to match your project structure
 };

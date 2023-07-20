@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 
-let outputDir = 'cmsTypeScriptClient';
+let outputDir = './src/cmsTypeScriptClient';
 
 // Function to delete directory recursively
 function deleteDirectory(path) {

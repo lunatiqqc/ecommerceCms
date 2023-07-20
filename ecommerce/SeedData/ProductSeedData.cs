@@ -1,4 +1,4 @@
-﻿using cms.ecommerce.Models;
+﻿using cms.ecommerce.models;
 using Microsoft.EntityFrameworkCore;
 
 namespace cms.SeedData

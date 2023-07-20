@@ -5,13 +5,130 @@ info:
 servers:
   - url: http://localhost:5059
 paths:
+  /File/upload:
+    post:
+      tags:
+        - File
+      operationId: File_Upload
+      parameters:
+        - name: FileFolderName
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+            encoding:
+              files:
+                style: form
+      responses:
+        '200':
+          description: Success
+  /File/filefolders:
+    get:
+      tags:
+        - File
+      operationId: File_GetFileFolders
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileFolder'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileFolder'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileFolder'
+  /api/GlobalContent/header:
+    get:
+      tags:
+        - GlobalContent
+      operationId: GlobalContent_GetHeader
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalHeader'
+    put:
+      tags:
+        - GlobalContent
+      operationId: GlobalContent_UpdateHeader
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalHeader'
+          text/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalHeader'
+          application/*+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalHeader'
+      responses:
+        '200':
+          description: Success
+  /api/GlobalContent/footer:
+    get:
+      tags:
+        - GlobalContent
+      operationId: GlobalContent_GetFooter
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalHeader'
+    put:
+      tags:
+        - GlobalContent
+      operationId: GlobalContent_UpdateFooter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalFooter'
+          text/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalFooter'
+          application/*+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/GlobalFooter'
+      responses:
+        '200':
+          description: Success
   /api/Pages:
     post:
       tags:
         - Pages
       operationId: Pages_Post
       parameters:
-        - name: title
+        - name: url
           in: query
           schema:
             type: string
@@ -73,13 +190,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Page'
+              allOf:
+                - $ref: '#/components/schemas/Page'
           text/json:
             schema:
-              $ref: '#/components/schemas/Page'
+              allOf:
+                - $ref: '#/components/schemas/Page'
           application/*+json:
             schema:
-              $ref: '#/components/schemas/Page'
+              allOf:
+                - $ref: '#/components/schemas/Page'
       responses:
         '200':
           description: Success
@@ -97,6 +217,34 @@ paths:
       responses:
         '200':
           description: Success
+  /api/Pages/deleteGridRows:
+    delete:
+      tags:
+        - Pages
+      operationId: Pages_DeleteGridRows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int32
+          text/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int32
+          application/*+json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int32
+      responses:
+        '200':
+          description: Success
   /api/Products:
     post:
       tags:
@@ -106,13 +254,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Product'
+              allOf:
+                - $ref: '#/components/schemas/Product'
           text/json:
             schema:
-              $ref: '#/components/schemas/Product'
+              allOf:
+                - $ref: '#/components/schemas/Product'
           application/*+json:
             schema:
-              $ref: '#/components/schemas/Product'
+              allOf:
+                - $ref: '#/components/schemas/Product'
         required: true
       responses:
         '200':
@@ -161,9 +312,52 @@ paths:
                 $ref: '#/components/schemas/Product'
 components:
   schemas:
+    Background:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        backgroundImage:
+          allOf:
+            - $ref: '#/components/schemas/ImageStyle'
+          nullable: true
+      additionalProperties: false
+    CmsFile:
+      required:
+        - discriminator
+        - fileFolderId
+        - fileName
+        - id
+        - uploadDate
+      type: object
+      properties:
+        discriminator:
+          type: string
+        id:
+          type: integer
+          format: int32
+        fileName:
+          type: string
+        uploadDate:
+          type: string
+          format: date-time
+        fileFolderId:
+          type: integer
+          format: int32
+        fileFolder:
+          allOf:
+            - $ref: '#/components/schemas/FileFolder'
+          nullable: true
+      additionalProperties: false
+      discriminator:
+        propertyName: discriminator
     Component:
       required:
         - discriminator
+        - id
       type: object
       properties:
         discriminator:
@@ -174,7 +368,94 @@ components:
       additionalProperties: false
       discriminator:
         propertyName: discriminator
+    ContainerStyling:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        padding:
+          allOf:
+            - $ref: '#/components/schemas/Padding'
+          nullable: true
+        margin:
+          allOf:
+            - $ref: '#/components/schemas/Margin'
+          nullable: true
+        background:
+          allOf:
+            - $ref: '#/components/schemas/Background'
+          nullable: true
+        height:
+          type: number
+          format: float
+          nullable: true
+      additionalProperties: false
+    FileFolder:
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        parentFolderId:
+          type: integer
+          format: int32
+          nullable: true
+        parentFolder:
+          allOf:
+            - $ref: '#/components/schemas/FileFolder'
+          nullable: true
+        subfolders:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileFolder'
+          nullable: true
+        files:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/CmsFile'
+              - $ref: '#/components/schemas/ImageFile'
+          nullable: true
+      additionalProperties: false
+    GlobalFooter:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        gridContent:
+          allOf:
+            - $ref: '#/components/schemas/GridContent'
+          nullable: true
+      additionalProperties: false
+    GlobalHeader:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        gridContent:
+          allOf:
+            - $ref: '#/components/schemas/GridContent'
+          nullable: true
+      additionalProperties: false
     GridColumn:
+      required:
+        - columnStart
+        - id
+        - width
       type: object
       properties:
         id:
@@ -191,6 +472,35 @@ components:
             - $ref: '#/components/schemas/TextComponent'
             - $ref: '#/components/schemas/ImageComponent'
           nullable: true
+        gridContent:
+          allOf:
+            - $ref: '#/components/schemas/GridContent'
+          nullable: true
+        gridContentId:
+          type: integer
+          format: int32
+          nullable: true
+        gridRowId:
+          type: integer
+          format: int32
+          nullable: true
+        gridRow:
+          allOf:
+            - $ref: '#/components/schemas/GridRow'
+          nullable: true
+        styling:
+          allOf:
+            - $ref: '#/components/schemas/ContainerStyling'
+          nullable: true
+      additionalProperties: false
+    GridContent:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
         gridRows:
           type: array
           items:
@@ -198,6 +508,8 @@ components:
           nullable: true
       additionalProperties: false
     GridRow:
+      required:
+        - id
       type: object
       properties:
         id:
@@ -207,6 +519,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GridColumn'
+          nullable: true
+        styling:
+          allOf:
+            - $ref: '#/components/schemas/ContainerStyling'
           nullable: true
       additionalProperties: false
     ImageComponent:
@@ -218,13 +534,113 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    Page:
+    ImageFile:
+      required:
+        - aspectRatio
+        - sizes
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CmsFile'
+      properties:
+        aspectRatio:
+          type: number
+          format: float
+        sizes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageSizes'
+      additionalProperties: false
+    ImageSizes:
+      enum:
+        - 120
+        - 240
+        - 480
+        - 768
+        - 1024
+        - 1920
+        - 3840
+      type: integer
+      format: int32
+    ImageStyle:
+      required:
+        - id
       type: object
       properties:
         id:
           type: integer
           format: int32
+        objectFit:
+          allOf:
+            - $ref: '#/components/schemas/ObjectFitOption'
           nullable: true
+        imageFile:
+          allOf:
+            - $ref: '#/components/schemas/ImageFile'
+          nullable: true
+      additionalProperties: false
+    Margin:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        top:
+          type: integer
+          format: int32
+          nullable: true
+        right:
+          type: integer
+          format: int32
+          nullable: true
+        bottom:
+          type: integer
+          format: int32
+          nullable: true
+        left:
+          type: integer
+          format: int32
+          nullable: true
+      additionalProperties: false
+    ObjectFitOption:
+      enum:
+        - Contain
+        - Cover
+      type: string
+    Padding:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        top:
+          type: integer
+          format: int32
+          nullable: true
+        right:
+          type: integer
+          format: int32
+          nullable: true
+        bottom:
+          type: integer
+          format: int32
+          nullable: true
+        left:
+          type: integer
+          format: int32
+          nullable: true
+      additionalProperties: false
+    Page:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
         title:
           type: string
           nullable: true
@@ -240,14 +656,21 @@ components:
           type: boolean
           nullable: true
         requiredRole:
-          $ref: '#/components/schemas/UserRoles'
-        gridRows:
-          type: array
-          items:
-            $ref: '#/components/schemas/GridRow'
+          allOf:
+            - $ref: '#/components/schemas/UserRoles'
+          nullable: true
+        gridContent:
+          allOf:
+            - $ref: '#/components/schemas/GridContent'
+          nullable: true
+        gridContentId:
+          type: integer
+          format: int32
           nullable: true
       additionalProperties: false
     Product:
+      required:
+        - id
       type: object
       properties:
         id:
@@ -268,7 +691,9 @@ components:
           format: int32
           nullable: true
         productCategory:
-          $ref: '#/components/schemas/ProductCategory'
+          allOf:
+            - $ref: '#/components/schemas/ProductCategory'
+          nullable: true
         productFields:
           type: array
           items:
@@ -276,6 +701,8 @@ components:
           nullable: true
       additionalProperties: false
     ProductCategory:
+      required:
+        - id
       type: object
       properties:
         id:
@@ -294,6 +721,8 @@ components:
           nullable: true
       additionalProperties: false
     ProductField:
+      required:
+        - id
       type: object
       properties:
         id:

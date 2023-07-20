@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using cms.ecommerce.Models;
+using cms.ecommerce.models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 //using NSwag.Annotations;
 

@@ -1,4 +1,4 @@
-﻿namespace cms.Users
+﻿namespace cms.users
 {
     public enum UserRoles
     {
@@ -6,7 +6,7 @@
     }
 }
 
-namespace cms.Models
+namespace cms.models
 {
     public class UserRole
     {

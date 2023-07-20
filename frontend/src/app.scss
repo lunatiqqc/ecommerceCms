@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '../static//fonts/tajawal-v9-latin/fontfaceDefinition.css';
+
+@layer base {
+	html {
+		font-family: Tajawal, system-ui, sans-serif;
+	}
+}
 @layer utilities {
 	.btn {
 		@apply px-4 py-2 text-white rounded-md;
@@ -26,8 +33,8 @@
 		}
 	}
 
-	ul,
-	ol {
-		@apply list-disc ps-8;
-	}
+	//ul,
+	//ol {
+	//	@apply list-disc ps-8;
+	//}
 }

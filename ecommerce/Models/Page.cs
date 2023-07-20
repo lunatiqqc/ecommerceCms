@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-using cms.Models;
+using cms.models;
+using cms.models.styling;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Reflection;
@@ -12,27 +13,39 @@ using Swashbuckle.AspNetCore.Annotations;
 using OneOf;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using cms.users;
 
-namespace cms.Models
+namespace cms.models
 {
     public class Page
     {
-	public int? Id { get; set; }
+	public int Id { get; set; }
 	public string? Title { get; set; }
 	public string? Url { get; set; }
 	public virtual List<Page>? Children { get; set; }
 	public bool? VisibleInMenu { get; set; }
-	public Users.UserRoles? RequiredRole { get; set; }
+	public UserRoles? RequiredRole { get; set; }
 	[System.Text.Json.Serialization.JsonIgnore]
 	public virtual Page? ParentPage { get; set; }
 
+	public virtual GridContent? GridContent { get; set; }
+
+	public int? GridContentId { get; set; }
+
+
+    }
+
+    public class GridContent
+    {
+	public int Id { get; set; }
 	public virtual List<GridRow>? GridRows { get; set; }
     }
 
 
     public class GridColumn
     {
-	public int Id { get; set; } // Primary key
+	public int Id { get; set; }
+
 	private int _width;
 	public int ColumnStart { get; set; } = 0;
 
@@ -42,17 +55,25 @@ namespace cms.Models
 	    set => _width = (value >= 1 && value <= 12) ? value : 1;
 	}
 
-	
+
 	public virtual Component? Component { get; set; } // Reference to the component
-	public virtual List<GridRow>? GridRows { get; set; }
+	public virtual GridContent? GridContent { get; set; }
+	public int? GridContentId { get; set; }
+
+	public int? GridRowId { get; set; }
+
+	public virtual GridRow? GridRow { get; set; }
+
+	public virtual ContainerStyling? Styling { get; set; }
     }
 
 
     public class GridRow
     {
-	public int Id { get; set; } // Primary key
-	public virtual List<GridColumn>? Columns { get; set; }
+	public int Id { get; set; }
 
+	public virtual List<GridColumn>? Columns { get; set; }
+	public virtual ContainerStyling? Styling { get; set; }
     }
 
     [JsonPolymorphic(

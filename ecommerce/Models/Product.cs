@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-namespace cms.ecommerce.Models
+namespace cms.ecommerce.models
 {
     public class ProductField
     {

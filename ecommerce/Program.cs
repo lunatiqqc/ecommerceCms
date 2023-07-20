@@ -10,14 +10,22 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Hosting;
-using cms.Models;
+using cms.models;
 using Microsoft.EntityFrameworkCore.Design;
 using AutoMapper;
 using Castle.Components.DictionaryAdapter.Xml;
 using System.Text.Json;
 using System.Text;
+using Newtonsoft.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
+{
+    Args = args,
+    WebRootPath = "wwwroot",
+
+
+});
 
 
 
@@ -30,7 +38,8 @@ builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    //options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     //options.JsonSerializerOptions.IncludeFields = true;
     //options.JsonSerializerOptions.Converters.Add(new CustomGridRowListConverter());
     //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
@@ -82,19 +91,24 @@ builder.Services.AddSwaggerGen((options) =>
 
     options.UseOneOfForPolymorphism();
     options.SelectDiscriminatorNameUsing((baseType) => "discriminator");
-    //options.SelectDiscriminatorValueUsing((subType) => subType.Name);
-    //options.SelectSubTypesUsing(baseType =>
-    //{
-    //    if (baseType == typeof(Component))
-    //    {
-    //        return new[]
-    //        {
-    //            typeof(TextComponent),
-    //            typeof(ImageComponent)
-    //        };
-    //    }
-    //    return Enumerable.Empty<Type>();
-    //});
+
+    options.SchemaFilter<RequireNonNullablePropertiesSchemaFilter>();
+    options.SupportNonNullableReferenceTypes(); // Sets Nullable flags appropriately.              
+    options.UseAllOfToExtendReferenceSchemas(); // Allows $ref enums to be nullable
+    options.UseAllOfForInheritance();  // Allows $ref objects to be nullable
+				 //options.SelectDiscriminatorValueUsing((subType) => subType.Name);
+				 //options.SelectSubTypesUsing(baseType =>
+				 //{
+				 //    if (baseType == typeof(Component))
+				 //    {
+				 //        return new[]
+				 //        {
+				 //            typeof(TextComponent),
+				 //            typeof(ImageComponent)
+				 //        };
+				 //    }
+				 //    return Enumerable.Empty<Type>();
+				 //});
 
     //options.EnableAnnotations(enableAnnotationsForInheritance: true, enableAnnotationsForPolymorphism: true);
 
@@ -169,6 +183,8 @@ bool isExecutingByEfCore = args.Length > 0 && args[0] == "--ef-core";
 //    // Remove all existing pages
 //    context.Pages.RemoveRange(context.Pages);
 //
+//    context.GridContent.RemoveRange(context.GridContent);
+//
 //    // Remove other related entities
 //
 //    context.SaveChanges();
@@ -184,6 +200,8 @@ bool isExecutingByEfCore = args.Length > 0 && args[0] == "--ef-core";
 //    ProductSeedData.SeedProducts(context);
 //
 //}
+
+app.UseStaticFiles(); // Enables serving static files from the "wwwroot" folder
 
 app.UseAuthorization();
 
@@ -220,9 +238,9 @@ public class MappingProfile : Profile
 	//   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
 
 
-	CreateMap<Page, Page>().ForMember(dest => dest.Children, opt => opt.Ignore())
-	   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
-	   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
+	//CreateMap<Page, Page>().ForMember(dest => dest.Children, opt => opt.Ignore())
+	//   .ForMember(dest => dest.ParentPage, opt => opt.Ignore())
+	//   .ForMember(dest => dest.GridRows, opt => opt.MapFrom(src => src.GridRows));
 	//CreateMap<GridRow, GridRow>();
 	//CreateMap<GridColumn, GridColumn>();
 	//
@@ -271,5 +289,22 @@ public class CustomGridRowListConverter : JsonConverter<List<GridRow>>
 	    }
 	}
 	writer.WriteEndArray();
+    }
+}
+
+public class RequireNonNullablePropertiesSchemaFilter : ISchemaFilter
+{
+    /// <summary>
+    /// Add to model.Required all properties where Nullable is false.
+    /// </summary>
+    public void Apply(OpenApiSchema model, SchemaFilterContext context)
+    {
+	var additionalRequiredProps = model.Properties
+	    .Where(x => !x.Value.Nullable && !model.Required.Contains(x.Key))
+	    .Select(x => x.Key);
+	foreach (var propKey in additionalRequiredProps)
+	{
+	    model.Required.Add(propKey);
+	}
     }
 }

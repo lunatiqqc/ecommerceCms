@@ -26,5 +26,11 @@ module.exports = {
 				parser: '@typescript-eslint/parser'
 			}
 		}
-	]
+	],
+	settings: {
+		'svelte3/ignore-warnings': 'svelte(a11y-click-events-have-key-events)'
+	},
+	rules: {
+		'a11y-click-events-have-key-events': 'off'
+	}
 };
