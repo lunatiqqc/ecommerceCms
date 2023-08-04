@@ -1,7 +1,5 @@
 export function clickOutside(node: HTMLElement) {
 	const handleClick = (event: MouseEvent) => {
-		console.log('clicking from action: clickOutside', event.target);
-
 		const { clientX, clientY } = event;
 
 		const nodeBoundingBox: DOMRect = node.getBoundingClientRect();
@@ -22,7 +20,7 @@ export function clickOutside(node: HTMLElement) {
 
 		if (!node.contains(event.target)) {
 			node.dispatchEvent(new CustomEvent('outclick'));
-			event.stopPropagation();
+			//event.stopPropagation();
 		}
 	};
 

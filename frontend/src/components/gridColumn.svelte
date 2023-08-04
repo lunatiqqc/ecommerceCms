@@ -19,8 +19,6 @@
 	export let parentIndexOfColumnInGridRow;
 	export let parentRowRef;
 
-	$: console.log(modifiedGridColumn);
-
 	const dispatch = createEventDispatcher();
 
 	function handleComponentDrop(indexOfColumnInGridRow) {
@@ -270,19 +268,14 @@
 						return;
 					}
 					if (columnRectBeforeModification.top + mouseyDelta < columnRectBeforeModification.top) {
+						console.log('weird true');
+
 						modifiedGridColumn.content.styling.height =
 							columnRectBeforeModification.height + modifiedGridColumn.content.styling.margin.top ||
 							0;
 						modifiedGridColumn.content.styling.margin.top = null;
 						return;
 					}
-
-					console.log(
-						'parentRowBoundingBox',
-						parentRowBoundingBox,
-						'columnRectBeforeModification',
-						columnRectBeforeModification
-					);
 
 					modifiedGridColumn.content.styling.margin.top =
 						columnRectBeforeModification.top - parentRowBoundingBox.top + mouseyDelta;
@@ -371,51 +364,76 @@
 			data-js-gridcolumn-controls
 			class="col-span-{modifiedGridColumn.content.width}
 			col-start-{modifiedGridColumn.content.columnStart + 1}
-			relative select-none
+			select-none
+			relative
 			"
+			on:mousemove={(e) => {
+				if (mouseDown && componentDraggedDiscriminator) {
+					return;
+				}
+
+				var rect = e.currentTarget.getBoundingClientRect();
+				var mouseX = e.clientX - rect.left;
+				var mouseY = e.clientY - rect.top;
+
+				// Check if mouse coordinates are within the element boundaries
+				if (mouseX >= 0 && mouseX <= rect.width && mouseY >= 0 && mouseY <= rect.height) {
+					// Mouse is within the boundaries of the currentTarget element
+					// Perform your desired actions here
+					handleMouseMoveOver(e);
+				}
+				dispatch('mouseovergridcolumn');
+			}}
+			on:mouseleave={() => {
+				mouseover = false;
+				dispatch('mouseleavegridcolumn');
+
+				if (!mouseDown) {
+					hoveredSide = undefined;
+				}
+			}}
+			on:mousedown|stopPropagation={(e) => {
+				handleMouseDown(e);
+			}}
 		>
+			{#if hoveredSide !== undefined}
+				<icon
+					on:mouseover={() => {
+						hoveredSide = null;
+					}}
+					on:click={() => {
+						//dispatch('setConfigurableContent', gridRowStore);
+					}}
+					class="absolute flex items-center h-full w-5 right-full"
+				>
+					<Icon
+						width={10}
+						viewBox={{ left: 10, top: 6, width: 12, height: 20 }}
+						icon="carbon:draggable"
+					/>
+				</icon>
+			{/if}
 			<GridColumnContent
 				bind:node={columnRef}
 				bind:styling={modifiedGridColumn.content.styling}
-				class="relative h-full z-30 overflow-hidden"
+				class="relative h-full"
 			>
-				<div
-					on:mousedown|stopPropagation={(e) => {
-						handleMouseDown(e);
-					}}
-					on:mousemove={(e) => {
-						if (mouseDown && componentDraggedDiscriminator) {
-							return;
-						}
-
-						var rect = e.currentTarget.getBoundingClientRect();
-						var mouseX = e.clientX - rect.left;
-						var mouseY = e.clientY - rect.top;
-
-						// Check if mouse coordinates are within the element boundaries
-						if (mouseX >= 0 && mouseX <= rect.width && mouseY >= 0 && mouseY <= rect.height) {
-							// Mouse is within the boundaries of the currentTarget element
-							// Perform your desired actions here
-							handleMouseMoveOver(e);
-						}
-					}}
-					on:mouseout={() => {
-						mouseover = false;
-						if (!mouseDown) {
-							hoveredSide = null;
-						}
-					}}
-					on:drag|preventDefault
-					class="absolute w-full h-full border-2 border-black z-10
-					{borderHoverClass[hoveredSide]}
-					"
-				/>
+				{#if hoveredSide !== undefined}
+					<div
+						on:drag|preventDefault
+						class="absolute w-full h-full z-20 pointer-events-none
+				{borderHoverClass[hoveredSide]}
+				{mouseover && 'border-2 border-dashed'}
+				"
+					/>
+				{/if}
 				{#if modifiedGridColumn.content.component}
 					<BaseComponent
 						{componentDraggedDiscriminator}
 						{modifiedGridColumn}
 						rowColumnIndex={indexOfColumnInGridRow}
 						gridRows={modifiedGridColumn.content.gridRows}
+						on:setConfigurableContent
 					/>
 				{/if}
 				{#if false && modifiedGridColumn.content?.gridContent?.gridRows.length}
@@ -444,6 +462,6 @@
 			handleComponentDrop(indexOfColumnInGridRow);
 		}}
 	>
-		<div class="absolute inset-0 w-full h-full outline-1 outline" />
+		<div class="absolute inset-0 w-full h-full" />
 	</div>
 {/if}

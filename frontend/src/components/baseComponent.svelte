@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { allComponents } from '@/stores/allComponents.js';
-	import { getContext, onMount } from 'svelte';
+	import { allComponentsEditors } from '@/stores/allComponentsEditors.js';
+	import { getContext, onMount, createEventDispatcher, setContext } from 'svelte';
+	import Icon from './icon.svelte';
+	import { writable } from 'svelte/store';
+	import { ContainerStylingFromJSON, TextContainerStylingFromJSON } from '@/cmsTypeScriptClient';
 
 	export let modifiedGridColumn: { originalIndex: number; content: CmsClient.GridColumn };
 	export let rowColumnIndex;
 	export let componentDraggedDiscriminator;
 	export let gridRows;
+
+	const styleContent = getContext('styleContent');
+
+	const dispatch = createEventDispatcher();
+
+	let componentStore = writable(modifiedGridColumn.content.component);
 
 	let hoveredSide;
 	let hoveredSideWithComponent;
@@ -16,6 +26,18 @@
 		const component = $allComponents['/src/components/cmsComponents/' + discriminator + '.svelte'];
 
 		return component();
+	}
+	async function getComponentEditor(
+		discriminator: CmsClient.Component['discriminator']
+	): Promise<ComponentType> {
+		const component =
+			$allComponentsEditors[
+				'/src/components/cmsComponentsEditors/' + discriminator + 'Editor' + '.svelte'
+			];
+
+		if (component) {
+			return component();
+		}
 	}
 
 	function getElementClientSide(event) {
@@ -49,8 +71,9 @@
 		}
 	}
 
-	function handleMouseMoveOver(event, rowIndex, columnStart, columnWidth) {
-		return;
+	function handleMouseMoveOver(event) {
+		console.log('mouseover');
+
 		const elementClientSideHovered = getElementClientSide(event);
 		if (elementClientSideHovered) {
 			hoveredSide = elementClientSideHovered;
@@ -108,7 +131,7 @@
 		console.log('baseComponentMount');
 	});
 
-	let componentDiscriminator = modifiedGridColumn.content.component.discriminator;
+	let componentDiscriminator = $componentStore.discriminator;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -117,8 +140,8 @@ data-grid-column-original-index={modifiedGridColumn.originalIndex}
 data-grid-column-index={rowColumnIndex} -->
 <div
 	bind:this={baseComponentRef}
-	class="relative
-	{borderHoverCursorClass[hoveredSide]}bg-green-200
+	class="relative z-10
+ bg-green-200
 	h-full
 	"
 	on:mousedown={(e) => {
@@ -129,25 +152,22 @@ data-grid-column-index={rowColumnIndex} -->
 		mouseDragStartPosition = null;
 		mouseDown = false;
 	}}
-	on:mousemove={(e) => {
-		handleMouseMoveOver.call(
-			{},
-			e,
-			modifiedGridColumn.content.columnStart,
-			modifiedGridColumn.content.width
-		);
+	on:mouseover|stopPropagation={(e) => {
+		handleMouseMoveOver(e);
 	}}
 	on:mouseleave={() => {
+		console.log('leave');
+
 		mouseDown = false;
-		hoveredSide = null;
+		hoveredSide = undefined;
 	}}
 	on:dragover={(e) => {
-		handleMouseMoveOver.call(
-			{},
-			e,
-			modifiedGridColumn.content.columnStart,
-			modifiedGridColumn.content.width
-		);
+		//handleMouseMoveOver.call(
+		//	{},
+		//	e,
+		//	modifiedGridColumn.content.columnStart,
+		//	modifiedGridColumn.content.width
+		//);
 	}}
 	on:dragleave={() => {
 		hoveredSideWithComponent = null;
@@ -166,7 +186,42 @@ data-grid-column-index={rowColumnIndex} -->
 			class="absolute z-50 inset-0 h-full w-full {hoveredSide && borderHoverClassMap[hoveredSide]}"
 		/>
 	{/if}
-	{#await getComponent(componentDiscriminator) then module}
-		<svelte:component this={module} {...modifiedGridColumn.content.component} />
+
+	{#if true || hoveredSide !== undefined}
+		<icon
+			on:mouseover={() => {
+				hoveredSide = null;
+			}}
+			on:click={() => {
+				if (!$componentStore.textStyling) {
+					$componentStore.textStyling = CmsClient.TextContainerStylingFromJSON({});
+				}
+				if (!$componentStore.styling) {
+					$componentStore.styling = CmsClient.ContainerStylingFromJSON({});
+				}
+				//styleContent.set(componentStore);
+				//styleContent4 = $componentStore;
+				dispatch('setConfigurableContent', componentStore);
+
+				console.log($componentStore);
+			}}
+			class="absolute flex items-center h-fit w-6 z-30 right-full"
+		>
+			<Icon class="mb-auto" width={20} icon="carbon:settings-view" />
+		</icon>
+	{/if}
+
+	{#await getComponentEditor(componentDiscriminator) then module}
+		{#if module}
+			<svelte:component this={module} {...$componentStore}>
+				{#await getComponent(componentDiscriminator) then module}
+					<svelte:component this={module} {...$componentStore} />
+				{/await}
+			</svelte:component>
+		{:else}
+			{#await getComponent(componentDiscriminator) then module}
+				<svelte:component this={module} {...$componentStore} />
+			{/await}
+		{/if}
 	{/await}
 </div>

@@ -49,17 +49,20 @@ namespace cms.models.styling
     public class ImageStyle
     {
 	public int Id { get; set; }
-	[JsonConverter(typeof(JsonStringEnumConverter))]
+	public virtual ImageFile? ImageFile { get; set; }
+
+	[JsonConverter(typeof(JsonStringEnumMemberConverter))]
 	public enum ObjectFitOption
 	{
-	    Contain,
-	    Cover
+	    [EnumMember(Value = "object-cover")]
+	    object_cover,
+	    [EnumMember(Value = "object-contain")]
+	    object_contain
 	}
 
 	[Column(TypeName = "text")] // Specify the desired column data type
 	public ObjectFitOption? ObjectFit { get; set; }
 
-	public virtual ImageFile? ImageFile { get; set; }
 
     }
 }

@@ -38,7 +38,6 @@ builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    //options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     // options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     //options.JsonSerializerOptions.IncludeFields = true;
     //options.JsonSerializerOptions.Converters.Add(new CustomGridRowListConverter());

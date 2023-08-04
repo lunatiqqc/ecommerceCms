@@ -1,5 +1,19 @@
+<script context="module" lang="ts">
+	const keysToIgnore = ['imageFile', 'id', 'discriminator', 'html', 'editorState'];
+
+	const nameToTypeMapper = {
+		backgroundImage: 'ImageStyle',
+		styling: 'ContainerStyling'
+	};
+
+	const orderMap = {
+		textStyling: -1
+	};
+</script>
+
 <script lang="ts">
 	import { allStyleDataEditorComponents } from '@/stores/allStyleDataEditorComponents';
+	import Background from './styleDataEditors/background/background2.svelte';
 	import type { Writable } from 'svelte/store';
 
 	export let styleContent: any;
@@ -9,42 +23,14 @@
 	export let nestingLevel = 0;
 	export let parentKey = '';
 
+	console.log('styleContentUpdateNested', styleContent);
+
 	let styleContentKeys = Object.keys(styleContent);
-
-	$: console.log(styleContent);
-
-	const keysToIgnore = ['imageFile'];
-
-	const nameToTypeMapper = {
-		backgroundImage: 'ImageStyle'
-	};
-
-	function generateObjectFields(styleContentKeys) {
-		for (let i = 0; i < styleContentKeys.length; i++) {
-			const key = styleContentKeys[i];
-
-			if (key === 'id' || keysToIgnore.includes(key)) {
-				continue;
-			}
-
-			if (styleContent[key] === undefined) {
-				const dynamicFunctionName =
-					capitalizeFirstLetter(nameToTypeMapper[key] || key) + 'FromJSON';
-
-				const generateBaseJsonFunction = CmsClient[dynamicFunctionName];
-
-				if (generateBaseJsonFunction) {
-					styleContent[key] = CmsClient[dynamicFunctionName]({});
-				}
-			}
-			console.log('yo', key);
-		}
-	}
 
 	$: for (let i = 0; i < styleContentKeys.length; i++) {
 		const key = styleContentKeys[i];
 
-		if (key === 'id' || keysToIgnore.includes(key)) {
+		if (keysToIgnore.includes(key)) {
 			continue;
 		}
 
@@ -57,14 +43,11 @@
 				styleContent[key] = CmsClient[dynamicFunctionName]({});
 			}
 		}
-		console.log('yo', key, nestingLevel);
 	}
 
 	async function getDataStyleEditorComponent(name): unknown {
 		const componentPath =
 			'/src/components/styleDataEditors' + parentKey + '/' + name + '/' + name + '.svelte';
-
-		console.log(componentPath, parentKey);
 
 		const componentImportFunction = $allStyleDataEditorComponents[componentPath];
 
@@ -82,23 +65,34 @@
 
 		return string[0].toUpperCase() + string.slice(1);
 	}
+
+	styleContentKeys.sort((a, b) => {
+		return (orderMap[a] || 0) - (orderMap[b] || 0);
+	});
+
+	console.log('styleContentKeysAfter', styleContentKeys);
+
+	let backgroundComponent =
+		$allStyleDataEditorComponents['/src/components/styleDataEditors/background/background.svelte'];
 </script>
 
 {#if styleContent}
 	<ul class="pl-2 pb-6 border-b-2 border-b-black">
-		{#each Object.keys(styleContent) as styleContentKey (nestingLevel + styleContentKey)}
-			{#if styleContentKey !== 'id' && !keysToIgnore.includes(styleContentKey)}
+		{#each styleContentKeys as styleContentKey (nestingLevel + styleContentKey)}
+			{#if !keysToIgnore.includes(styleContentKey)}
 				<li class="py-2">
 					<h1 class="text-xl capitalize">{styleContentKey}</h1>
+
 					{#await getDataStyleEditorComponent(styleContentKey) then module}
 						{#if module}
 							<svelte:component
 								this={module}
 								{styleContentKey}
-								styleContent={styleContent[styleContentKey]}
+								bind:styleContent={styleContent[styleContentKey]}
+								parentStyleContent={styleContent}
 								{gridContentStore}
 							>
-								{#if styleContent[styleContentKey]}
+								{#if false && styleContent[styleContentKey]}
 									<svelte:self
 										nestingLevel={nestingLevel + 1}
 										styleContent={styleContent[styleContentKey]}
@@ -113,7 +107,7 @@
 							{#if styleContent[styleContentKey]}
 								<svelte:self
 									nestingLevel={nestingLevel + 1}
-									styleContent={styleContent[styleContentKey]}
+									bind:styleContent={styleContent[styleContentKey]}
 									parentKey={parentKey + '/' + styleContentKey}
 									{gridContentStore}
 								/>

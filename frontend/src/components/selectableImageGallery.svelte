@@ -45,7 +45,7 @@
 </script>
 
 {#if fileFolders}
-	<ul class="">
+	<ul class="ml-4">
 		{#each fileFolders as folder, i}
 			{@const folderIsClosed = indeciesOfClosedFolder.includes(i)}
 			<li>
@@ -61,13 +61,15 @@
 							<Icon width="32" icon="flat-color-icons:folder" />
 						</icon>
 					{:else}
-						<icon
-							on:click={() => {
-								indeciesOfClosedFolder = [...indeciesOfClosedFolder, i];
-							}}
-						>
-							<Icon width="32" icon="flat-color-icons:opened-folder" />
-						</icon>
+						<button>
+							<icon
+								on:click={() => {
+									indeciesOfClosedFolder = [...indeciesOfClosedFolder, i];
+								}}
+							>
+								<Icon width="32" icon="flat-color-icons:opened-folder" />
+							</icon>
+						</button>
 					{/if}
 
 					<div class="text-lg">{folder.name}</div>
@@ -86,7 +88,7 @@
 			</li>
 			{#if !folderIsClosed}
 				{#if folder.files?.length}
-					<ul class="flex flex-wrap mt-4">
+					<ul class="flex flex-wrap mt-4 ml-4">
 						{#each folder.files as file}
 							<li
 								class={selectedImageFile?.id === file.id && 'outline outline-green-600 z-10'}
@@ -96,7 +98,10 @@
 							>
 								<h1 class="hidden">{file.fileName + file.id}</h1>
 
-								<Image height={200} image={file} />
+								<Image
+									height={200}
+									imageStyle={CmsClient.ImageStyleFromJSON({ imageFile: file })}
+								/>
 							</li>
 						{/each}
 					</ul>

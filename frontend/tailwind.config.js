@@ -1,7 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
 	mode: 'jit',
-	content: ['./src/**/*.{html,js,svelte,ts}', './components/**/*.{html,js,svelte,ts}'],
+	content: [
+		'./src/**/*.{html,js,svelte,ts}',
+		'./components/**/*.{html,js,svelte,ts}',
+		'./svelte-lexical/packages/svelte-lexical/src/**/*.{html,js,svelte,ts}'
+	],
 	theme: {
 		extend: {}
 	},

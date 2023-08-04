@@ -2,4 +2,4 @@
 	const props: CmsClient.TextComponent = $$props as CmsClient.TextComponent;
 </script>
 
-TextCompoenent
+{@html props.html}

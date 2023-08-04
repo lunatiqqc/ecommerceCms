@@ -7,7 +7,7 @@
 	import TextComponent from '@/components/cmsComponents/TextComponent.svelte';
 	import EditorNewRow from '@/components/editorNewRow.svelte';
 	import NestedGridContent from '@/components/nestedGridContent.svelte';
-	import { SvelteComponent, each, onMount } from 'svelte/internal';
+	import { SvelteComponent, each, onMount, setContext } from 'svelte/internal';
 	import type { ComponentType, SvelteComponentTyped } from 'svelte/types/runtime/internal/dev.js';
 	import { type Writable, writable } from 'svelte/store';
 
@@ -27,6 +27,8 @@
 	if (!gridContent.gridRows) {
 		gridContent.gridRows = [];
 	}
+
+	let styleContent = null;
 
 	const gridContentStore = writable(gridContent);
 
@@ -58,29 +60,44 @@
 		];
 	}
 
-	let styleContent = null;
-
 	let unique = {};
 
 	function handleSetConfigurableContent({
 		detail
 	}: {
 		detail: {
-			styleContent: any;
+			styleContent: Writable<any>;
 		};
 	}) {
 		console.log('handleSetConfigurableContent', detail);
-		//let { styleContent } = detail;
+		styleContent = detail;
 		//
 		//styleContent = 'dddd';
 
 		//detail.styleContent = 'nope';
 
-		styleContent = detail;
+		//$detail.Background = 'test';
+
+		//detail.styling = { test3: true };
+		//
+		//detail = detail;
+
+		//detail = { test2: true };
+
+		//detail.subscribe((o) => {
+		//	styleContent2.update((prev) => {
+		//		return prev + 1;
+		//	});
+		//
+		//	styleContent.set(o);
+		//});
+
+		hideContentStylingConfiguration = false;
+
+		unique = {};
 
 		return;
 
-		styleContent = detail;
 		//
 		//console.log('contentStylingConfiguration', contentStylingConfiguration);
 		//
@@ -188,7 +205,7 @@
 		</ul>
 		<button
 			on:click={() => {
-				$gridContentStore = $gridContentStore;
+				//$gridContentStore = $gridContentStore;
 				console.log($gridContentStore);
 			}}>Log orig gridContent</button
 		>
@@ -201,15 +218,26 @@
 		</button>
 	</div>
 
-	{#if styleContent && !hideContentStylingConfiguration}
-		<div class="right-0 h-screen bg-slate-200 overflow-y-auto px-2 sticky top-0 z-50">
+	{#if $styleContent && !hideContentStylingConfiguration}
+		<div class="right-0 h-screen bg-slate-200 overflow-y-auto px-2 sticky top-0 z-40 w-72">
+			<button
+				on:click={() => {
+					$styleContent.discriminator = 'tasdadasd';
+				}}>test</button
+			>
 			<button
 				on:click={() => {
 					hideContentStylingConfiguration = true;
 				}}>close</button
 			>
 
-			<ContentStylingConfigurator {styleContent} {gridContentStore} firstLevelFolder={true} />
+			{#key unique}
+				<ContentStylingConfigurator
+					bind:styleContent={$styleContent}
+					{gridContentStore}
+					firstLevelFolder={true}
+				/>
+			{/key}
 		</div>
 	{/if}
 </div>

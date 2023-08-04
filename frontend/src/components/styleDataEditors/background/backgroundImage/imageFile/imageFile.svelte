@@ -5,9 +5,10 @@
 	import { clickOutside } from '@/lib/actions/clickOutside';
 	import Image from '@/components/image.svelte';
 
-	export let styleContent: CmsClient.ImageStyle;
+	export let styleContent: CmsClient.ImageFile;
 	export let gridContentStore: Writable<CmsClient.GridContent>;
-	export let styleContentKey;
+	export let styleContentKey: 'imageFile';
+	export let parentStyleContent: CmsClient.ImageStyle;
 
 	type $$props = CmsClient.Background;
 
@@ -24,13 +25,13 @@
 	function handleSubmitBackgroundImage() {
 		console.log('handleSubmitBackgroundImage');
 
-		console.log('styleContent', styleContent);
+		console.log('imageFileStyleContent', styleContent);
 
-		styleContent.imageFile = selectedImage;
+		console.log('parentStyleContent', parentStyleContent);
 
-		console.log(styleContent);
+		styleContent = selectedImage;
 
-		gridContentStore.update((self) => self);
+		//gridContentStore.update((self) => self);
 
 		selectImage = false;
 	}
@@ -41,6 +42,16 @@
 
 	console.log('styleContentKey', styleContentKey);
 	console.log('styleContent', styleContent);
+
+	//styleContent = {
+	//	discriminator: 'ImageFile',
+	//	id: 144,
+	//	fileName: 'b (21).jpg',
+	//	uploadDate: '2023-07-15T21:06:07.403Z',
+	//	fileFolderId: 5,
+	//	aspectRatio: 1.3091364,
+	//	sizes: [120, 240, 480, 768, 1024, 1920, 3840]
+	//};
 </script>
 
 <div>
@@ -52,11 +63,14 @@
 	</div>
 
 	<div class="relative">
-		{#if styleContent.imageFile}
-			<Image class="hover:opacity-70" image={styleContent.imageFile} />
+		{#if styleContent}
+			<Image
+				class="hover:opacity-70"
+				imageStyle={CmsClient.ImageStyleFromJSON({ imageFile: styleContent })}
+			/>
 		{/if}
 		<icon
-			class="{styleContent.imageFile &&
+			class="{styleContent &&
 				' w-full h-full inset-0 absolute opacity-0 hover:opacity-100'} cursor-pointer"
 			on:click={() => {
 				selectImage = true;
@@ -65,33 +79,11 @@
 			<Icon class="border-2 w-full h-full border-black" width="100" icon="carbon:add" />
 		</icon>
 	</div>
-
-	{#if false}
-		<div class="flex flex-col">
-			<label>
-				cover
-				<input
-					on:click={() => {
-						handleSetObjectFit('cover');
-					}}
-					name="object-fit"
-					type="radio"
-				/>
-			</label>
-			<label>
-				contain<input
-					on:click={() => {
-						handleSetObjectFit('contain');
-					}}
-					name="object-fit"
-					type="radio"
-				/>
-			</label>
-		</div>
-	{/if}
 </div>
 
-<slot />
+{#if false && selectedImage}
+	<slot />
+{/if}
 
 {#if selectImage}
 	<div

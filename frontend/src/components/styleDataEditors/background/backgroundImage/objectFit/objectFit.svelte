@@ -4,11 +4,12 @@
 
 	export let styleContent: CmsClient.ObjectFitOption;
 	export let gridContentStore: Writable<CmsClient.GridContent>;
+	export let styleContenta;
+	export let styleContentKey;
+	export let parentStyleContent;
 
 	function handleSetObjectFit(val) {
 		styleContent = val;
-
-		gridContentStore.update((_) => _);
 	}
 </script>
 

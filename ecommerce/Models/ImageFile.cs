@@ -1,7 +1,8 @@
 ﻿
+using System.Text.Json.Serialization;
+
 namespace cms.models
 {
-
     public enum ImageSizes
     {
 	w120 = 120,

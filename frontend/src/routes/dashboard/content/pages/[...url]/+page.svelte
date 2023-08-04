@@ -29,7 +29,7 @@
 			on:click={() => {
 				console.log(data.page);
 				const pagesClient = new CmsClient.PagesClient();
-				pagesClient.put({ id: data.page.id, page: data.page });
+				pagesClient.put({ id: data.page.id, pagesPutRequest: data.page });
 			}}
 		>
 			Put

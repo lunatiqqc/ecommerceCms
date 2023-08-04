@@ -1,9 +1,10 @@
 {
     "withInterfaces": false,
     "supportsES6": true,
-    "legacyDiscriminatorBehavior": true,
+    "legacyDiscriminatorBehavior": false,
     "apiNameSuffix": "Client",
     "useTags": true,
     "modelNameSuffix": null,
-    "removeOperationIdPrefix": true
+    "removeOperationIdPrefix": true,
+    "enumPropertyNaming": "camelCase"
 }

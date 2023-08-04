@@ -15,6 +15,7 @@
 
 <article
 	{...$$restProps}
+	class={$$restProps.class + ' '}
 	bind:this={node}
 	style="height:{styling.height}px; margin-top:{styling.margin.top}px"
 >

@@ -147,7 +147,12 @@ namespace ecommerce.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("StylingId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("StylingId");
 
                     b.ToTable("Component");
 
@@ -331,6 +336,52 @@ namespace ecommerce.Migrations
                         });
                 });
 
+            modelBuilder.Entity("cms.models.TextContainerStyling", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ElementFormats")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FontSizeClassOptions")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TextFormatsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TextFormatsId");
+
+                    b.ToTable("TextContainerStyling");
+                });
+
+            modelBuilder.Entity("cms.models.TextFormats", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bold")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Italic")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Underline")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TextFormats");
+                });
+
             modelBuilder.Entity("cms.models.styling.Background", b =>
                 {
                     b.Property<int>("Id")
@@ -475,12 +526,32 @@ namespace ecommerce.Migrations
                     b.ToTable("ImageComponents", (string)null);
                 });
 
+            modelBuilder.Entity("cms.models.MenuComponent", b =>
+                {
+                    b.HasBaseType("cms.models.Component");
+
+                    b.Property<int?>("TextStylingId")
+                        .HasColumnType("integer");
+
+                    b.HasIndex("TextStylingId");
+
+                    b.ToTable("MenuComponents");
+                });
+
             modelBuilder.Entity("cms.models.TextComponent", b =>
                 {
                     b.HasBaseType("cms.models.Component");
 
-                    b.Property<string>("Text")
+                    b.Property<string>("EditorState")
                         .HasColumnType("text");
+
+                    b.Property<string>("Html")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("TextStylingId")
+                        .HasColumnType("integer");
+
+                    b.HasIndex("TextStylingId");
 
                     b.ToTable("TextComponents", (string)null);
                 });
@@ -519,6 +590,15 @@ namespace ecommerce.Migrations
                         .IsRequired();
 
                     b.Navigation("FileFolder");
+                });
+
+            modelBuilder.Entity("cms.models.Component", b =>
+                {
+                    b.HasOne("cms.models.styling.ContainerStyling", "Styling")
+                        .WithMany()
+                        .HasForeignKey("StylingId");
+
+                    b.Navigation("Styling");
                 });
 
             modelBuilder.Entity("cms.models.FileFolder", b =>
@@ -605,6 +685,15 @@ namespace ecommerce.Migrations
                     b.Navigation("ParentPage");
                 });
 
+            modelBuilder.Entity("cms.models.TextContainerStyling", b =>
+                {
+                    b.HasOne("cms.models.TextFormats", "TextFormats")
+                        .WithMany()
+                        .HasForeignKey("TextFormatsId");
+
+                    b.Navigation("TextFormats");
+                });
+
             modelBuilder.Entity("cms.models.styling.Background", b =>
                 {
                     b.HasOne("cms.models.styling.ImageStyle", "BackgroundImage")
@@ -662,6 +751,21 @@ namespace ecommerce.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("cms.models.MenuComponent", b =>
+                {
+                    b.HasOne("cms.models.Component", null)
+                        .WithOne()
+                        .HasForeignKey("cms.models.MenuComponent", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("cms.models.TextContainerStyling", "TextStyling")
+                        .WithMany()
+                        .HasForeignKey("TextStylingId");
+
+                    b.Navigation("TextStyling");
+                });
+
             modelBuilder.Entity("cms.models.TextComponent", b =>
                 {
                     b.HasOne("cms.models.Component", null)
@@ -669,6 +773,12 @@ namespace ecommerce.Migrations
                         .HasForeignKey("cms.models.TextComponent", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("cms.models.TextContainerStyling", "TextStyling")
+                        .WithMany()
+                        .HasForeignKey("TextStylingId");
+
+                    b.Navigation("TextStyling");
                 });
 
             modelBuilder.Entity("cms.ecommerce.models.Product", b =>

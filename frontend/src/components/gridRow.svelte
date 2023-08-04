@@ -5,9 +5,10 @@
 	import Icon from './icon.svelte';
 	import GridRowContent from './gridRowContent.svelte';
 	import { writable } from 'svelte/store';
+	import { getContext } from 'svelte/internal';
 
 	export let gridRowIndex: number;
-	export let gridRows: [CmsClient.GridRow];
+	export let gridRows: CmsClient.GridRow[];
 	//export let configuredContent: { stylingConfiguration: string; content: CmsClient.GridRow };
 	export let componentDraggedDiscriminator: string | undefined;
 	export let gridRowNestingLevel = 0;
@@ -17,9 +18,17 @@
 	export let pageStore;
 	export let gridRow: CmsClient.GridRow;
 
+	let styleContent = getContext('styleContent');
+
 	const dispatch = createEventDispatcher();
 
-	console.log('pagestore from gridrow', pageStore);
+	const gridRowStore = writable(gridRow);
+
+	gridRowStore.subscribe((value) => {
+		console.log('gridRowStore updated', value);
+	});
+
+	console.log('pagestore from gridRow', pageStore);
 
 	let modifiedGridColumns: Array<
 		string | { originalIndex: number; content: CmsClient.GridColumn } | null
@@ -28,7 +37,7 @@
 	$: for (let i = 0; i < 12; i++) {
 		let originalIndex: number | undefined;
 
-		const columnContentAtIndex = gridRow?.columns?.find((column, j) => {
+		const columnContentAtIndex = $gridRowStore?.columns?.find((column, j) => {
 			originalIndex = j;
 
 			return column && i >= column.columnStart && i < column.columnStart + column.width;
@@ -164,7 +173,7 @@
 	let showGridOverlay: boolean = false;
 
 	function handleSortingGridRow(draggedGridRowIndex) {
-		[gridRow, gridRows[draggedGridRowIndex]] = [gridRows[draggedGridRowIndex], gridRow];
+		[$gridRowStore, gridRows[draggedGridRowIndex]] = [gridRows[draggedGridRowIndex], $gridRowStore];
 	}
 	async function handleDeleteGridRow(draggedGridRowIndex, gridRowId) {
 		gridRows = [
@@ -216,14 +225,14 @@
 			columnStart: columnStart,
 			width: 1
 		});
-		gridRow.columns = [...gridRow.columns, column];
+		$gridRowStore.columns = [...$gridRowStore.columns, column];
 	}
 
 	let hoveredSide;
 
 	function handleMouseDown(e) {
-		if (!gridRow.styling) {
-			gridRow.styling = CmsClient.ContainerStylingFromJSON({});
+		if (!$gridRowStore.styling) {
+			$gridRowStore.styling = CmsClient.ContainerStylingFromJSON({});
 		}
 
 		const _hoveredSide = hoveredSide;
@@ -242,7 +251,7 @@
 
 				console.log(e.target);
 
-				gridRow.styling.height = newHeight;
+				$gridRowStore.styling.height = newHeight;
 			}
 		}
 		function handleMouseUp() {
@@ -252,9 +261,12 @@
 		document.addEventListener('mousemove', handleMouseMoveWhilePressed);
 		document.addEventListener('mouseup', handleMouseUp);
 	}
+
+	let mousemove = false;
+	let mousemoveGridColumn = false;
 </script>
 
-{#if gridRow}
+{#if $gridRowStore}
 	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div
@@ -293,7 +305,7 @@
 			e.preventDefault();
 
 			e.dataTransfer?.setData('draggedGridRowIndex', gridRowIndex);
-			e.dataTransfer?.setData('gridRowId', gridRow.id);
+			e.dataTransfer?.setData('gridRowId', $gridRowStore.id);
 		}}
 		on:dragend={() => {
 			dragging = false;
@@ -312,24 +324,35 @@
 		}}
 		on:contextmenu={(e) => {}}
 		on:mousemove={(e) => {
+			mousemove = true;
 			hoveredSide = getElementClientSide(e);
 		}}
 		on:mouseleave={(event) => {
+			mousemove = false;
 			hoveredSide = null;
 		}}
-		on:click={() => {
-			//if (!gridRow.styling) {
-			//	gridRow.styling = CmsClient.ContainerStylingFromJSON({});
+		on:click={(e) => {
+			console.log(e);
+
+			if (mousemoveGridColumn) {
+				return;
+			}
+			//if (!$gridRowStore.styling) {
+			//	$gridRowStore.styling = CmsClient.ContainerStylingFromJSON({});
 			//}
 
 			//console.log('self click');
 			//
 			//function callback(newContent) {
-			//	gridRow = newContent;
+			//	$gridRowStore = newContent;
 			//}
 			//
 
-			dispatch('setConfigurableContent', gridRow.styling);
+			console.log('gridRowBeforeDispatch', $gridRowStore);
+
+			styleContent.set($gridRowStore);
+
+			//dispatch('setConfigurableContent', gridRowStore);
 			//configuredContent =
 		}}
 	>
@@ -359,9 +382,12 @@
 			</icon>
 		{/if}
 		<GridRowContent
-			class="grid col-span-12 grid-cols-12 relative min-h-[50px] border-green-950"
+			on:mouseovergridcolumn={() => {
+				mouseover = false;
+			}}
+			class="grid col-span-12 grid-cols-12 relative min-h-[50px] border-green-950 z-0"
 			bind:node={rowRef}
-			styling={gridRow.styling}
+			styling={$gridRowStore.styling}
 		>
 			{#if hoveredSideWithDraggedComponent}
 				<div
@@ -376,6 +402,13 @@
 					class="h-full w-full absolute
 				z-10
 				{borderHoveredSideClass[hoveredSide]}"
+				/>
+			{/if}
+			{#if mousemove && !mousemoveGridColumn}
+				<div
+					class="h-full w-full absolute
+				z-10
+				border-dashed border-2 border-slate-800"
 				/>
 			{/if}
 			{#if false && showGridOverlay}
@@ -397,6 +430,13 @@
 					{gridRowNestingLevel}
 					parentRowRef={rowRef}
 					on:gridColumnAdded={handleAddGridColumn}
+					on:mouseovergridcolumn={(e) => {
+						mousemoveGridColumn = true;
+					}}
+					on:mouseleavegridcolumn={(e) => {
+						mousemoveGridColumn = false;
+					}}
+					on:setConfigurableContent
 				/>
 			{/each}
 		</GridRowContent>

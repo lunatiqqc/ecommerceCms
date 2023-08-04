@@ -9,15 +9,21 @@
 	if (!styling) {
 		styling = CmsClient.ContainerStylingFromJSON({});
 	}
+	console.log($$restProps);
 </script>
 
-<section {...$$restProps} bind:this={node} style="min-height:{styling?.height}px">
+<section
+	class={$$restProps.class + ' relative'}
+	bind:this={node}
+	style="min-height:{styling?.height}px"
+>
 	{#if styling.background?.backgroundImage?.imageFile}
-		<div class="absolute w-full h-full">
+		<div class="absolute w-full h-full -z-10">
 			<Image
 				class="w-full h-full"
 				preventLayoutShift={false}
 				backgroundImage={styling.background.backgroundImage}
+				imageStyle={styling?.background.backgroundImage}
 			/>
 		</div>
 	{/if}

@@ -28,9 +28,11 @@ module.exports = {
 		}
 	],
 	settings: {
-		'svelte3/ignore-warnings': 'svelte(a11y-click-events-have-key-events)'
+		'svelte3/ignore-warnings': 'svelte(a11y-click-events-have-key-events)',
+		'svelte3/ignore-warnings': 'svelte(a11y-mouse-events-have-key-events)'
 	},
 	rules: {
-		'a11y-click-events-have-key-events': 'off'
+		'a11y-click-events-have-key-events': 'off',
+		'a11y-mouse-events-have-key-events': 'off'
 	}
 };

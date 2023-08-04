@@ -325,6 +325,10 @@ components:
             - $ref: '#/components/schemas/ImageStyle'
           nullable: true
       additionalProperties: false
+    BoldClass:
+      enum:
+        - font-bold
+      type: string
     CmsFile:
       required:
         - discriminator
@@ -365,6 +369,10 @@ components:
         id:
           type: integer
           format: int32
+        styling:
+          allOf:
+            - $ref: '#/components/schemas/ContainerStyling'
+          nullable: true
       additionalProperties: false
       discriminator:
         propertyName: discriminator
@@ -393,6 +401,13 @@ components:
           format: float
           nullable: true
       additionalProperties: false
+    ElementFormats:
+      enum:
+        - text-left
+        - text-center
+        - text-right
+        - text-justify
+      type: string
     FileFolder:
       required:
         - id
@@ -425,6 +440,15 @@ components:
               - $ref: '#/components/schemas/ImageFile'
           nullable: true
       additionalProperties: false
+    FontSizeClassOptions:
+      enum:
+        - text-4xl
+        - text-3xl
+        - text-2xl
+        - text-xl
+        - text-lg
+        - text-base
+      type: string
     GlobalFooter:
       required:
         - id
@@ -471,6 +495,7 @@ components:
           oneOf:
             - $ref: '#/components/schemas/TextComponent'
             - $ref: '#/components/schemas/ImageComponent'
+            - $ref: '#/components/schemas/MenuComponent'
           nullable: true
         gridContent:
           allOf:
@@ -569,15 +594,19 @@ components:
         id:
           type: integer
           format: int32
-        objectFit:
-          allOf:
-            - $ref: '#/components/schemas/ObjectFitOption'
-          nullable: true
         imageFile:
           allOf:
             - $ref: '#/components/schemas/ImageFile'
           nullable: true
+        objectFit:
+          allOf:
+            - $ref: '#/components/schemas/ObjectFitOption'
+          nullable: true
       additionalProperties: false
+    ItalicClass:
+      enum:
+        - italic
+      type: string
     Margin:
       required:
         - id
@@ -603,10 +632,20 @@ components:
           format: int32
           nullable: true
       additionalProperties: false
+    MenuComponent:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Component'
+      properties:
+        textStyling:
+          allOf:
+            - $ref: '#/components/schemas/TextContainerStyling'
+          nullable: true
+      additionalProperties: false
     ObjectFitOption:
       enum:
-        - Contain
-        - Cover
+        - object-cover
+        - object-contain
       type: string
     Padding:
       required:
@@ -749,10 +788,63 @@ components:
       allOf:
         - $ref: '#/components/schemas/Component'
       properties:
-        text:
+        html:
           type: string
           nullable: true
+        editorState:
+          type: string
+          nullable: true
+        textStyling:
+          allOf:
+            - $ref: '#/components/schemas/TextContainerStyling'
+          nullable: true
       additionalProperties: false
+    TextContainerStyling:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        textFormats:
+          allOf:
+            - $ref: '#/components/schemas/TextFormats'
+          nullable: true
+        elementFormats:
+          allOf:
+            - $ref: '#/components/schemas/ElementFormats'
+          nullable: true
+        fontSizeClassOptions:
+          allOf:
+            - $ref: '#/components/schemas/FontSizeClassOptions'
+          nullable: true
+      additionalProperties: false
+    TextFormats:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        bold:
+          allOf:
+            - $ref: '#/components/schemas/BoldClass'
+          nullable: true
+        italic:
+          allOf:
+            - $ref: '#/components/schemas/ItalicClass'
+          nullable: true
+        underline:
+          allOf:
+            - $ref: '#/components/schemas/UnderlineClass'
+          nullable: true
+      additionalProperties: false
+    UnderlineClass:
+      enum:
+        - underline
+      type: string
     UserRoles:
       enum:
         - 0

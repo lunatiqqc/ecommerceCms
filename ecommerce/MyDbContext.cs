@@ -21,6 +21,8 @@ namespace cms
 	public DbSet<GridColumn> GridColumns { get; set; }
 	public DbSet<TextComponent> TextComponents { get; set; }
 	public DbSet<ImageComponent> ImageComponents { get; set; }
+	public DbSet<MenuComponent> MenuComponents { get; set; }
+	public DbSet<TextFormats> TextFormats { get; set; }
 
 	public DbSet<CmsFile> Files { get; set; }
 	public DbSet<ImageFile> ImageFiles { get; set; }

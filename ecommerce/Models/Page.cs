@@ -12,7 +12,6 @@ using System.Drawing;
 using Swashbuckle.AspNetCore.Annotations;
 using OneOf;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using cms.users;
 
 namespace cms.models
@@ -25,7 +24,7 @@ namespace cms.models
 	public virtual List<Page>? Children { get; set; }
 	public bool? VisibleInMenu { get; set; }
 	public UserRoles? RequiredRole { get; set; }
-	[System.Text.Json.Serialization.JsonIgnore]
+	[JsonIgnore]
 	public virtual Page? ParentPage { get; set; }
 
 	public virtual GridContent? GridContent { get; set; }
@@ -82,18 +81,103 @@ namespace cms.models
 
     [JsonDerivedType(typeof(TextComponent), typeDiscriminator: "TextComponent")]
     [JsonDerivedType(typeof(ImageComponent), typeDiscriminator: "ImageComponent")]
+    [JsonDerivedType(typeof(MenuComponent), typeDiscriminator: "MenuComponent")]
     public abstract class Component
     {
 	public int Id { get; set; }
+	public virtual ContainerStyling? Styling { get; set; }
+
 	// Common properties for all components
 	// ...
     }
 
+    public class TextFormats
+    {
+	public int Id { get; set; }
+	[Column(TypeName = "text")]
+	public BoldClass? Bold { get; set; }
+	[Column(TypeName = "text")]
+	public ItalicClass? Italic { get; set; }
+	[Column(TypeName = "text")]
+	public UnderlineClass? Underline { get; set; }
+    }
+    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
+    public enum BoldClass
+    {
+	[EnumMember(Value = "font-bold")]
+	bold
+    }
+    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
+    public enum ItalicClass
+    {
+	[EnumMember(Value = "italic")]
+	italic
+    }
+    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
+    public enum UnderlineClass
+    {
+	[EnumMember(Value = "underline")]
+	underline
+    }
 
+    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
+    public enum ElementFormats
+    {
+	[EnumMember(Value = "text-left")]
+	align_left,
+	[EnumMember(Value = "text-center")]
+	align_center,
+	[EnumMember(Value = "text-right")]
+	align_right,
+	[EnumMember(Value = "text-justify")]
+	align_justify
+    }
+
+    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
+
+    public enum FontSizeClassOptions
+    {
+	[EnumMember(Value = "text-4xl")]
+	Font4xl,
+
+	[EnumMember(Value = "text-3xl")]
+	Font3xl,
+
+	[EnumMember(Value = "text-2xl")]
+	Font2xl,
+
+	[EnumMember(Value = "text-xl")]
+	FontXLarge,
+
+	[EnumMember(Value = "text-lg")]
+	FontLarge,
+
+	[EnumMember(Value = "text-base")]
+	FontStandard
+    }
+
+    // Extended ContainerStyling for TextComponent
+    public class TextContainerStyling
+    {
+	public int Id { get; set; }
+	// Additional properties specific to text components' styling
+	// ...
+
+	public virtual TextFormats? TextFormats { get; set; }
+	public ElementFormats? ElementFormats { get; set; }
+
+	public FontSizeClassOptions? FontSizeClassOptions { get; set; }
+
+    }
 
     public class TextComponent : Component
     {
-	public string? Text { get; set; }
+	public string? Html { get; set; }
+	public string? EditorState { get; set; }
+
+	public virtual TextContainerStyling? TextStyling { get; set; } // Use 'new' keyword to hide the base class property
+
+
 	// Additional properties specific to text components
 	// ...
     }
@@ -103,6 +187,15 @@ namespace cms.models
 	public string? ImageUrl { get; set; }
 	// Additional properties specific to image components
 	// ...
+    }
+    public class MenuComponent : Component
+    {
+	//public IEnumerable<Page> Items { get; set; }
+	// public string? ImageUrl { get; set; }
+	// Additional properties specific to image components
+	// ...
+	public virtual TextContainerStyling? TextStyling { get; set; } // Use 'new' keyword to hide the base class property
+
     }
 }
 

@@ -2,14 +2,13 @@
 	import { onMount } from 'svelte';
 	import ObjectFit from './styleDataEditors/background/backgroundImage/objectFit/objectFit.svelte';
 
-	export let image: CmsClient.ImageFile;
 	export let height: number | null = null;
 	export let width: number | null = null;
 	export let preventLayoutShift = true;
 
 	export let imageStyle: CmsClient.ImageStyle & { imageFile: CmsClient.ImageFile };
 
-	console.log('incoming image', image);
+	console.log('incoming image', imageStyle);
 
 	let responsiveSize;
 
@@ -27,10 +26,14 @@
 
 	$: if (height !== null || height !== undefined) {
 		const responsiveSizesFiltered = imageStyle.imageFile.sizes?.filter((size) => {
+			console.log('size', size);
+
+			const sizeInt = size;
+
 			if (width) {
-				return size < width;
+				return sizeInt < width;
 			}
-			return size < height * imageStyle.imageFile.aspectRatio;
+			return sizeInt < height * imageStyle.imageFile.aspectRatio;
 		});
 
 		responsiveSize = imageStyle.imageFile.sizes[responsiveSizesFiltered.length];
@@ -63,7 +66,7 @@
 <figure {...$$restProps} bind:this={imageContainer} class={`${$$restProps.class || ''} relative`}>
 	{#if mounted}
 		<img
-			class="absolute w-full h-full {objectFit}"
+			class="absolute w-full h-full {imageStyle.objectFit || 'object-contain'}"
 			alt="alty"
 			src={CmsClient.BASE_PATH +
 				'/' +
