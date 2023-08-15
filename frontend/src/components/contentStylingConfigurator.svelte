@@ -1,5 +1,18 @@
 <script context="module" lang="ts">
-	const keysToIgnore = ['imageFile', 'id', 'discriminator', 'html', 'editorState'];
+	const keysToIgnore = [
+		'gridContent',
+		'gridContentId',
+		'gridRowId',
+		'gridRow',
+		'imageFile',
+		'id',
+		'discriminator',
+		'html',
+		'editorState',
+		'columns',
+		'component',
+		'0'
+	];
 
 	const nameToTypeMapper = {
 		backgroundImage: 'ImageStyle',
@@ -13,7 +26,6 @@
 
 <script lang="ts">
 	import { allStyleDataEditorComponents } from '@/stores/allStyleDataEditorComponents';
-	import Background from './styleDataEditors/background/background2.svelte';
 	import type { Writable } from 'svelte/store';
 
 	export let styleContent: any;
@@ -22,8 +34,6 @@
 	export let firstLevelFolder = false;
 	export let nestingLevel = 0;
 	export let parentKey = '';
-
-	console.log('styleContentUpdateNested', styleContent);
 
 	let styleContentKeys = Object.keys(styleContent);
 
@@ -70,8 +80,6 @@
 		return (orderMap[a] || 0) - (orderMap[b] || 0);
 	});
 
-	console.log('styleContentKeysAfter', styleContentKeys);
-
 	let backgroundComponent =
 		$allStyleDataEditorComponents['/src/components/styleDataEditors/background/background.svelte'];
 </script>
@@ -92,10 +100,10 @@
 								parentStyleContent={styleContent}
 								{gridContentStore}
 							>
-								{#if false && styleContent[styleContentKey]}
+								{#if styleContent[styleContentKey] && typeof styleContent[styleContentKey] === 'object'}
 									<svelte:self
 										nestingLevel={nestingLevel + 1}
-										styleContent={styleContent[styleContentKey]}
+										bind:styleContent={styleContent[styleContentKey]}
 										parentKey={parentKey + '/' + styleContentKey}
 										{gridContentStore}
 									/>
@@ -103,6 +111,14 @@
 							</svelte:component>
 						{:else}
 							{styleContentKey} editor not found
+
+							{'/src/components/styleDataEditors' +
+								parentKey +
+								'/' +
+								styleContentKey +
+								'/' +
+								styleContentKey +
+								'.svelte'}
 
 							{#if styleContent[styleContentKey]}
 								<svelte:self

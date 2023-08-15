@@ -5,17 +5,17 @@
 	import Icon from './icon.svelte';
 	import { writable } from 'svelte/store';
 	import { ContainerStylingFromJSON, TextContainerStylingFromJSON } from '@/cmsTypeScriptClient';
+	import Image from './image.svelte';
 
-	export let modifiedGridColumn: { originalIndex: number; content: CmsClient.GridColumn };
+	export let gridColumn: CmsClient.GridColumn;
 	export let rowColumnIndex;
 	export let componentDraggedDiscriminator;
 	export let gridRows;
-
-	const styleContent = getContext('styleContent');
+	export let mousemoveGridrow;
 
 	const dispatch = createEventDispatcher();
 
-	let componentStore = writable(modifiedGridColumn.content.component);
+	let componentStore = writable(gridColumn.component);
 
 	let hoveredSide;
 	let hoveredSideWithComponent;
@@ -72,7 +72,7 @@
 	}
 
 	function handleMouseMoveOver(event) {
-		console.log('mouseover');
+		mousemove = true;
 
 		const elementClientSideHovered = getElementClientSide(event);
 		if (elementClientSideHovered) {
@@ -127,10 +127,9 @@
 
 	let page = getContext('test');
 
-	onMount(() => {
-		console.log('baseComponentMount');
-	});
+	onMount(() => {});
 
+	let mousemove = false;
 	let componentDiscriminator = $componentStore.discriminator;
 </script>
 
@@ -141,8 +140,17 @@ data-grid-column-index={rowColumnIndex} -->
 <div
 	bind:this={baseComponentRef}
 	class="relative z-10
- bg-green-200
 	h-full
+	pt-{$componentStore?.styling?.padding?.top}
+	pr-{$componentStore?.styling?.padding?.right}
+	pl-{$componentStore?.styling?.padding?.left}
+	pb-{$componentStore?.styling?.padding?.bottom}
+	mt-{$componentStore?.styling?.margin?.top}
+	mr-{$componentStore?.styling?.margin?.right}
+	ml-{$componentStore?.styling?.margin?.left}
+	mb-{$componentStore?.styling?.margin?.bottom}
+
+	{mousemove && 'bg-slate-300 bg-opacity-30 outline-dashed outline-1'}
 	"
 	on:mousedown={(e) => {
 		mouseDragStartPosition = e.clientX;
@@ -156,10 +164,9 @@ data-grid-column-index={rowColumnIndex} -->
 		handleMouseMoveOver(e);
 	}}
 	on:mouseleave={() => {
-		console.log('leave');
-
 		mouseDown = false;
 		hoveredSide = undefined;
+		mousemove = false;
 	}}
 	on:dragover={(e) => {
 		//handleMouseMoveOver.call(
@@ -173,11 +180,19 @@ data-grid-column-index={rowColumnIndex} -->
 		hoveredSideWithComponent = null;
 	}}
 	on:click|stopPropagation={() => {
-		console.log(page);
-
 		page = null;
 	}}
 >
+	{#if $componentStore?.styling?.background?.backgroundImage?.imageFile}
+		<div class="absolute w-full h-full -z-10">
+			<Image
+				class="w-full h-full"
+				preventLayoutShift={false}
+				backgroundImage={$componentStore.styling.background.backgroundImage}
+				imageStyle={$componentStore.styling.background.backgroundImage}
+			/>
+		</div>
+	{/if}
 	{#if false && hoveredSide}
 		<div
 			on:mousedown={(e) => {
@@ -187,27 +202,59 @@ data-grid-column-index={rowColumnIndex} -->
 		/>
 	{/if}
 
-	{#if true || hoveredSide !== undefined}
+	{#if mousemove}
 		<icon
 			on:mouseover={() => {
 				hoveredSide = null;
 			}}
 			on:click={() => {
-				if (!$componentStore.textStyling) {
-					$componentStore.textStyling = CmsClient.TextContainerStylingFromJSON({});
-				}
-				if (!$componentStore.styling) {
-					$componentStore.styling = CmsClient.ContainerStylingFromJSON({});
-				}
 				//styleContent.set(componentStore);
 				//styleContent4 = $componentStore;
-				dispatch('setConfigurableContent', componentStore);
 
-				console.log($componentStore);
+				let styleContentKeys = Object.keys($componentStore);
+
+				const keysToIgnore = [];
+
+				const nameToTypeMapper = {
+					backgroundImage: 'ImageStyle',
+					styling: 'ContainerStyling',
+					textStyling: 'TextContainerStyling'
+				};
+
+				for (let i = 0; i < styleContentKeys.length; i++) {
+					const key = styleContentKeys[i];
+
+					if (keysToIgnore.includes(key)) {
+						continue;
+					}
+
+					if ($componentStore[key] === undefined) {
+						const dynamicFunctionName =
+							capitalizeFirstLetter(nameToTypeMapper[key] || key) + 'FromJSON';
+
+						const generateBaseJsonFunction = CmsClient[dynamicFunctionName];
+
+						console.log(dynamicFunctionName);
+
+						if (generateBaseJsonFunction) {
+							$componentStore[key] = CmsClient[dynamicFunctionName]({});
+						}
+					}
+
+					function capitalizeFirstLetter(string) {
+						if (!string) {
+							return string;
+						}
+
+						return string[0].toUpperCase() + string.slice(1);
+					}
+				}
+
+				dispatch('setConfigurableContent', componentStore);
 			}}
-			class="absolute flex items-center h-fit w-6 z-30 right-full"
+			class="absolute flex items-center h-fit w-6 z-30 right-full pb-4"
 		>
-			<Icon class="mb-auto" width={20} icon="carbon:settings-view" />
+			<Icon class="mb-auto" width={20} height={20} icon="carbon:settings-view" />
 		</icon>
 	{/if}
 
@@ -215,7 +262,19 @@ data-grid-column-index={rowColumnIndex} -->
 		{#if module}
 			<svelte:component this={module} {...$componentStore}>
 				{#await getComponent(componentDiscriminator) then module}
-					<svelte:component this={module} {...$componentStore} />
+					<div
+						class="
+					pt-{$componentStore?.styling?.padding?.top}
+					pr-{$componentStore?.styling?.padding?.right}
+					pl-{$componentStore?.styling?.padding?.left}
+					pb-{$componentStore?.styling?.padding?.bottom}
+					mt-{$componentStore?.styling?.margin?.top}
+					mr-{$componentStore?.styling?.margin?.right}
+					ml-{$componentStore?.styling?.margin?.left}
+					mb-{$componentStore?.styling?.margin?.bottom}"
+					>
+						<svelte:component this={module} {...$componentStore} />
+					</div>
 				{/await}
 			</svelte:component>
 		{:else}

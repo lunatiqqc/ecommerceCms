@@ -154,6 +154,29 @@ namespace cms.models
 
 	[EnumMember(Value = "text-base")]
 	FontStandard
+    }    
+	
+	[JsonConverter(typeof(JsonStringEnumMemberConverter))]
+
+    public enum HeadingValue
+    {
+	[EnumMember(Value = "h1")]
+	h1,
+
+	[EnumMember(Value = "h2")]
+	h2,
+
+	[EnumMember(Value = "h3")]
+	h3,
+
+	[EnumMember(Value = "h4")]
+	h4,
+
+	[EnumMember(Value = "h5")]
+	h5,
+
+	[EnumMember(Value = "h6")]
+	h6
     }
 
     // Extended ContainerStyling for TextComponent
@@ -167,6 +190,7 @@ namespace cms.models
 	public ElementFormats? ElementFormats { get; set; }
 
 	public FontSizeClassOptions? FontSizeClassOptions { get; set; }
+	public HeadingValue? HeadingValue { get; set; }
 
     }
 

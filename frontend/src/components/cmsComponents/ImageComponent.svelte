@@ -4,7 +4,6 @@
 	const props: CmsClient.ImageComponent = $$props;
 
 	onMount(() => {
-		console.log('imageComponentMount');
 	});
 </script>
 

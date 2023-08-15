@@ -172,11 +172,11 @@ namespace YourNamespace.Controllers
 
 
 	[HttpGet("filefolders")]
-	public async Task<ActionResult<IEnumerable<FileFolder>>> GetFileFolders()
+	public async Task<ActionResult<IEnumerable<FileFolder>>> GetFileFolders(string? fileFolderName)
 	{
 	    try
 	    {
-		var folders = await _context.FileFolders.ToListAsync();
+		var folders = await _context.FileFolders.Where(item => fileFolderName == null ? true : item.Name == fileFolderName).ToListAsync();
 
 		return Ok(folders);
 	    }

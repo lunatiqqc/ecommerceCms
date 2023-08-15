@@ -350,6 +350,9 @@ namespace ecommerce.Migrations
                     b.Property<int?>("FontSizeClassOptions")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("HeadingValue")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("TextFormatsId")
                         .HasColumnType("integer");
 

@@ -5,6 +5,5 @@ const _allComponentsEditors = import.meta.glob('@/components/cmsComponentsEditor
 	import: 'default'
 });
 
-console.log(_allComponentsEditors);
 
 export const allComponentsEditors = readable(_allComponentsEditors);

@@ -3,7 +3,6 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ params }) => {
 	const pagesClient = new CmsClient.PagesClient();
 
-	console.log('paramsUrl', typeof params.url);
 
 	const page = await pagesClient.get({ url: params.url || '/' });
 

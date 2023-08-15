@@ -3,9 +3,10 @@
 	import BaseGridColumn from '@/components/baseComponent.svelte';
 	import { dataset_dev } from 'svelte/internal';
 	import type { Writable } from 'svelte/store';
-	import GridRow from './gridRow.svelte';
+	import GridRow from './visualEditor/gridRow.svelte';
+	import Icon from './icon.svelte';
 
-	export let gridRows: [CmsClient.GridRow];
+	export let gridRows: CmsClient.GridRow[];
 	export let componentDraggedDiscriminator;
 	export let gridRowNestingLevel = 0;
 	export let parentGridRows;
@@ -17,10 +18,70 @@
 		location: string;
 		index: number;
 	};
+
+	function handleInsertGridRow(gridRowIndex: number, columnIndex: number) {
+		let offsetNewRow = 1;
+
+		gridRows = [
+			...gridRows.slice(0, gridRowIndex + offsetNewRow),
+
+			CmsClient.GridRowFromJSON({
+				columns: [
+					CmsClient.GridColumnFromJSON({
+						columnStart: columnIndex,
+						width: 12 - columnIndex,
+						component: CmsClient.ComponentFromJSON({
+							discriminator: componentDraggedDiscriminator
+						})
+					})
+				]
+			}),
+			...gridRows.slice(gridRowIndex + offsetNewRow)
+		];
+	}
+
+	function handleSortingGridRows(gridRowIndexDroppedOnto: number) {
+		if (gridRowIndexDragged > gridRowIndexDroppedOnto) {
+			gridRows = [
+				...gridRows.slice(0, gridRowIndexDroppedOnto),
+				gridRows[gridRowIndexDragged],
+				...gridRows
+					.slice(gridRowIndexDroppedOnto)
+					.filter((item) => item !== gridRows[gridRowIndexDragged])
+			];
+		}
+
+		if (gridRowIndexDragged < gridRowIndexDroppedOnto) {
+			gridRows = [
+				...gridRows
+					.slice(0, gridRowIndexDroppedOnto + 1)
+					.filter((item) => item !== gridRows[gridRowIndexDragged]),
+				gridRows[gridRowIndexDragged],
+				...gridRows.slice(gridRowIndexDroppedOnto + 1)
+			];
+		}
+
+		gridRowIndexDraggedOver = undefined;
+		gridRowIndexDragged = undefined;
+	}
+
+	let gridRowIndexDraggedOver: number | undefined;
+	let gridRowIndexDragged: number | undefined;
 </script>
 
 {#if gridRows?.length}
-	{#each gridRows as gridRow, i}
+	{#each gridRows as gridRow, i (gridRow)}
+		{#if gridRowIndexDraggedOver === i && gridRowIndexDragged > i}
+			<div
+				on:dragover|preventDefault
+				class="col-span-12 border-2 p-4 h-20"
+				on:drop={() => {
+					handleSortingGridRows(i);
+				}}
+			>
+				<Icon strokeWidth="10" class=" w-full h-full " icon="ion:add" />
+			</div>
+		{/if}
 		<GridRow
 			{parentGridRows}
 			bind:gridRows
@@ -32,6 +93,33 @@
 			on:setConfigurableContent
 			{pageStore}
 			bind:gridRow
+			on:insertgridrow={({ detail }) => {
+				handleInsertGridRow(i, detail.columnIndex);
+			}}
+			on:dragging={() => {
+				gridRowIndexDragged = i;
+				//andleSortingGridRows(i);
+			}}
+			on:dragend={() => {
+				console.log('dragend');
+
+				gridRowIndexDragged = undefined;
+				gridRowIndexDraggedOver = undefined;
+			}}
+			on:dragover={() => {
+				gridRowIndexDraggedOver = i;
+			}}
 		/>
+		{#if gridRowIndexDraggedOver === i && gridRowIndexDragged < i}
+			<div
+				on:dragover|preventDefault
+				class="col-span-12 border-2 p-4 h-20"
+				on:drop={() => {
+					handleSortingGridRows(i);
+				}}
+			>
+				<Icon strokeWidth="10" class=" w-full h-full " icon="ion:add" />
+			</div>
+		{/if}
 	{/each}
 {/if}

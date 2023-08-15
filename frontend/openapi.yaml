@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: '3.0.1'
 info:
   title: 'ecommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
   version: '1.0'
@@ -37,6 +37,11 @@ paths:
       tags:
         - File
       operationId: File_GetFileFolders
+      parameters:
+        - name: fileFolderName
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -550,6 +555,15 @@ components:
             - $ref: '#/components/schemas/ContainerStyling'
           nullable: true
       additionalProperties: false
+    HeadingValue:
+      enum:
+        - h1
+        - h2
+        - h3
+        - h4
+        - h5
+        - h6
+      type: string
     ImageComponent:
       type: object
       allOf:
@@ -818,6 +832,10 @@ components:
         fontSizeClassOptions:
           allOf:
             - $ref: '#/components/schemas/FontSizeClassOptions'
+          nullable: true
+        headingValue:
+          allOf:
+            - $ref: '#/components/schemas/HeadingValue'
           nullable: true
       additionalProperties: false
     TextFormats:

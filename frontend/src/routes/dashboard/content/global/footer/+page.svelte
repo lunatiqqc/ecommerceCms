@@ -1,5 +1,5 @@
 <script lang="ts">
-	import GridContentVisualEditor from '@/components/gridContentVisualEditor.svelte';
+	import GridContentVisualEditor from '@/components/visualEditor/gridContentVisualEditor.svelte';
 	export let data;
 </script>
 

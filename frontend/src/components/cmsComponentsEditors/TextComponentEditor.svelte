@@ -8,7 +8,6 @@
 	let classes;
 
 	$: if (textStyling) {
-		console.log('textStyling3', textStyling);
 
 		let arrayOfClassNames = [];
 

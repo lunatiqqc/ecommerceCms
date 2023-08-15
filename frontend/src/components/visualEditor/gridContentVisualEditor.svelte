@@ -20,6 +20,8 @@
 	import ContentStylingConfigurator from '@/components/contentStylingConfigurator.svelte';
 
 	export let gridContent: CmsClient.GridContent | undefined;
+	export let showSettings;
+	export let responsiveSize;
 
 	if (!gridContent) {
 		gridContent = {};
@@ -32,12 +34,9 @@
 
 	const gridContentStore = writable(gridContent);
 
-	gridContentStore.subscribe((value) => {
-		console.log('gridContentUpdated', value);
-	});
+	gridContentStore.subscribe((value) => {});
 
 	//gridContentStore.update((n) => n);
-	console.log('orig gridContent', $gridContentStore);
 
 	let componentDraggedDiscriminator;
 
@@ -69,7 +68,6 @@
 			styleContent: Writable<any>;
 		};
 	}) {
-		console.log('handleSetConfigurableContent', detail);
 		styleContent = detail;
 		//
 		//styleContent = 'dddd';
@@ -141,6 +139,29 @@
 	let gridContentChangeHistory = [$gridContentStore];
 
 	let hideContentStylingConfiguration = false;
+
+	let editorContainerRef: HTMLElement;
+
+	let offsetScale;
+
+	$: {
+		if (editorContainerRef) {
+			const editorWidth = editorContainerRef.getBoundingClientRect().width;
+
+			const editorComputedStyle = window.getComputedStyle(editorContainerRef);
+
+			const totalPadding =
+				parseInt(editorComputedStyle.paddingLeft) + parseInt(editorComputedStyle.paddingRight);
+
+			const scaleDifference = (editorWidth - totalPadding) / responsiveSize;
+
+			console.log('scaleDifference', scaleDifference);
+
+			if (scaleDifference < 1) {
+				offsetScale = scaleDifference;
+			}
+		}
+	}
 </script>
 
 <!-- {#if mounted}
@@ -155,8 +176,13 @@
 
 	<div class="w-full">
 		{#if $gridContentStore}
-			<div class="w-full bg-slate-700 px-12">
-				<div class="bg-white w-full grid grid-cols-12 relative">
+			<div bind:this={editorContainerRef} class="w-full bg-slate-700 px-12 flex justify-center">
+				<div
+					class="bg-white w-full grid grid-cols-12 relative flex-shrink-0"
+					style="width:{responsiveSize}px;
+					transform:scale({offsetScale})
+					"
+				>
 					<NestedGridContent
 						{gridContentStore}
 						{componentDraggedDiscriminator}
@@ -205,8 +231,9 @@
 		</ul>
 		<button
 			on:click={() => {
-				//$gridContentStore = $gridContentStore;
 				console.log($gridContentStore);
+
+				//$gridContentStore = $gridContentStore;
 			}}>Log orig gridContent</button
 		>
 		<button

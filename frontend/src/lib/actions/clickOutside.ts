@@ -14,11 +14,11 @@ export function clickOutside(node: HTMLElement) {
 		//	const newEvent = new CustomEvent('outclick');
 		//	node.dispatchEvent(newEvent);
 		//
-		//	event.stopPropagation();
+		//	//event.stopPropagation();
 		//	return;
 		//}
 
-		if (!node.contains(event.target)) {
+		if (!node.contains(event.target) && node !== event.target) {
 			node.dispatchEvent(new CustomEvent('outclick'));
 			//event.stopPropagation();
 		}

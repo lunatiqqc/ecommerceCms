@@ -6,10 +6,6 @@
 	//import Editor from '@tinymce/tinymce-svelte';
 	//import lexicalRichText from '@lexical/rich-text/index';
 
-	import RichTextComposer from '../../svelte-lexical/packages/svelte-lexical/src/components/richtext/RichTextComposer.svelte';
-	import PlaygroundEditorTheme from '../../svelte-lexical/demos/richtext-editor/src/themes/PlaygroundEditorTheme';
-	import '../../svelte-lexical/demos/richtext-editor/src/global.css';
-
 	import { createEditor } from 'lexical';
 
 	import * as test from 'lexical';

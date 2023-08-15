@@ -4,19 +4,19 @@
 
 	export let styleContent: CmsClient.TextContainerStyling;
 
-	console.log('styleContent textStylingEditor', styleContent);
 
 	const lexicalStylingToCms = {
 		FORMAT_TEXT_COMMAND: 'textFormats',
-		FORMAT_ELEMENT_COMMAND: 'elementFormats'
+		FORMAT_ELEMENT_COMMAND: 'elementFormats',
+		"SET_HEADING": "headingValue"
 	};
 
 	let formatType;
 
 	const pseudoEditor = {
 		dispatchCommand: ({ type }, value) => {
+
 			if (type === 'FORMAT_TEXT_COMMAND') {
-				console.log(type, value);
 
 				if (value === 'bold') {
 					if (styleContent[lexicalStylingToCms[type]][value] === CmsClient.BoldClass.fontBold) {
@@ -49,9 +49,11 @@
 				}
 			}
 			if (type === 'FORMAT_ELEMENT_COMMAND') {
-				console.log(type, value, styleContent[lexicalStylingToCms[type]]);
 
 				styleContent[lexicalStylingToCms[type]] = CmsClient.ElementFormats[value];
+			}
+			if (type === 'SET_HEADING') {
+				styleContent[lexicalStylingToCms[type]] = value
 			}
 		},
 		_config: {

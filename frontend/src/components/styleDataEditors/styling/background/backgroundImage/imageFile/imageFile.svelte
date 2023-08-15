@@ -1,14 +1,10 @@
 <script lang="ts">
-	import type { Writable } from 'svelte/store';
 	import Icon from '@/components/icon.svelte';
 	import SelectableImageGallery from '@/components/selectableImageGallery.svelte';
 	import { clickOutside } from '@/lib/actions/clickOutside';
 	import Image from '@/components/image.svelte';
 
 	export let styleContent: CmsClient.ImageFile;
-	export let gridContentStore: Writable<CmsClient.GridContent>;
-	export let styleContentKey: 'imageFile';
-	export let parentStyleContent: CmsClient.ImageStyle;
 
 	type $$props = CmsClient.Background;
 
@@ -23,25 +19,13 @@
 	}
 
 	function handleSubmitBackgroundImage() {
-		console.log('handleSubmitBackgroundImage');
 
-		console.log('imageFileStyleContent', styleContent);
-
-		console.log('parentStyleContent', parentStyleContent);
 
 		styleContent = selectedImage;
-
-		//gridContentStore.update((self) => self);
 
 		selectImage = false;
 	}
 
-	function handleSetObjectFit() {
-		styleContent.objectFit = '';
-	}
-
-	console.log('styleContentKey', styleContentKey);
-	console.log('styleContent', styleContent);
 
 	//styleContent = {
 	//	discriminator: 'ImageFile',
@@ -62,22 +46,33 @@
 		</icon>
 	</div>
 
-	<div class="relative">
-		{#if styleContent}
-			<Image
-				class="hover:opacity-70"
-				imageStyle={CmsClient.ImageStyleFromJSON({ imageFile: styleContent })}
-			/>
-		{/if}
-		<icon
-			class="{styleContent &&
-				' w-full h-full inset-0 absolute opacity-0 hover:opacity-100'} cursor-pointer"
+	<div class="relative mt-4">
+		<div class="relative">
+			{#if styleContent}
+				<Image
+					class="hover:opacity-70"
+					imageStyle={CmsClient.ImageStyleFromJSON({ imageFile: styleContent })}
+				/>
+			{/if}
+			<icon
+				class="{styleContent &&
+					' w-full h-full inset-0 absolute opacity-0 hover:opacity-100'} cursor-pointer"
+				on:click={() => {
+					selectImage = true;
+				}}
+			>
+				<Icon class="border-2 w-full h-full border-black" width="100" icon="carbon:add" />
+			</icon>
+		</div>
+		<button
 			on:click={() => {
-				selectImage = true;
+				styleContent = null;
 			}}
 		>
-			<Icon class="border-2 w-full h-full border-black" width="100" icon="carbon:add" />
-		</icon>
+			<icon class="absolute bottom-full right-0">
+				<Icon class="border-2 w-8 h-8 border-black" width="100" icon="carbon:reset" />
+			</icon>
+		</button>
 	</div>
 </div>
 
@@ -92,7 +87,6 @@
 		<div
 			use:clickOutside
 			on:outclick={() => {
-				console.log('outClick');
 
 				selectImage = false;
 			}}
@@ -103,7 +97,7 @@
 			</div>
 			{#if selectedImage}
 				<button on:click={handleSubmitBackgroundImage} class="p-4 border-2 absolute right-0"
-					>Select2</button
+					>Select</button
 				>
 			{/if}
 		</div>

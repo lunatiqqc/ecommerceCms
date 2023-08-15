@@ -119,7 +119,6 @@
 			}
 
 			if (textContent.html) {
-				console.log('parsedHtml');
 
 				const parser = new DOMParser();
 				const dom = parser.parseFromString(textContent.html, 'text/html');
@@ -130,7 +129,6 @@
 				getRoot().select();
 
 				// Insert them at a selection.
-				console.log('nodes', nodes);
 
 				insertNodes(nodes);
 			}
@@ -191,8 +189,6 @@
 	let formatType;
 
 	function handleSelectionChange() {
-		console.log('editor.getEditorState()', editor.getEditorState());
-		console.log('selectionChange');
 
 		selection = getSelection();
 
@@ -201,7 +197,6 @@
 		const rootElement = editor.getRootElement();
 
 		if (selection && isRangeSelection(selection) && !selection.isCollapsed()) {
-			console.log('trueeeasdasd');
 
 			const anchorNode = selection.anchor.getNode();
 
@@ -220,16 +215,13 @@
 			if (isElementNode(anchorNode)) {
 				formatType = CmsClient.ElementFormats[element.getFormatType()];
 
-				console.log('formatType', formatType);
 			}
 
 			if (isParagraphNode(element)) {
 				formatType = CmsClient.ElementFormats[element.getFormatType()];
 			}
 
-			console.log('element', element);
 
-			console.log('anchorNode', anchorNode);
 
 			const elementKey = element.getKey();
 			const elementDOM = editor.getElementByKey(elementKey);
@@ -241,19 +233,14 @@
 
 			const rangeRect = getDOMRangeRect(nativeSelection, rootElement);
 
-			console.log('rangeRect', rangeRect);
 
 			const nodes = selection?.getNodes();
 
-			console.log('nnodes', nodes);
 
 			if (nodes) {
 				const element = editor.getElementByKey(nodes[0].__key);
 
-				console.log(element);
-
 				if (element) {
-					console.log('true2');
 
 					const elementClientRect = element.getBoundingClientRect();
 
@@ -262,7 +249,8 @@
 						visible: true,
 						position: {
 							clientX: rangeRect.x - editorRect.x + rangeRect.width / 2,
-							clientY: rangeRect.y - editorRect.y
+							clientY: rangeRect.y - editorRect.y,
+							globalClientY: rangeRect.top
 						}
 					};
 				}

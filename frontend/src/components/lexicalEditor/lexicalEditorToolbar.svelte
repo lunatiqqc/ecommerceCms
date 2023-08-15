@@ -49,19 +49,37 @@
 
 	$: if (toolbarRef && isBubble) {
 		const toolbarRect = toolbarRef.getBoundingClientRect();
-		toolbarRef.style.top = position.clientY - toolbarRect.height + 'px';
+		if (position.globalClientY > 200) {
+			toolbarRef.style.top = position.clientY - 100 + 'px';
+		} else {
+			toolbarRef.style.top = position.clientY + 50 + 'px';
+		}
+
 		toolbarRef.style.left = position.clientX - toolbarRect.width / 2 + 'px';
+
+		if (toolbarRect.left < 0) {
+			toolbarRef.style.left = 0;
+		}
+
 	}
 
 	onMount(() => {
 		if (isBubble) {
 			const toolbarRect = toolbarRef.getBoundingClientRect();
-			toolbarRef.style.top = position.clientY + 'px';
+			if (position.clientY > 200) {
+				toolbarRef.style.top = position.clientY - 100 + 'px';
+			} else {
+				toolbarRef.style.top = position.clientY + 50 + 'px';
+			}
 			toolbarRef.style.left = position.clientX - toolbarRect.width / 2 + 'px';
 		}
 	});
 
 	function setBlockType(blockType) {
+		if (!isBubble) {
+			editor.dispatchCommand({ type: 'SET_HEADING' }, blockType.value);
+			return;
+		}
 		if (selection) {
 			editor.update(() => {
 				if (isRangeSelection(selection) || DEPRECATED_$isGridSelection(selection)) {
@@ -106,7 +124,6 @@
 				const elementKey = element.getKey();
 				const elementDOM = editor.getElementByKey(elementKey);
 
-				console.log('elementDOM', elementDOM, Object.values(fontSizeClassOptions));
 				removeClassNamesFromElement(elementDOM, ...Object.values(fontSizeClassOptions));
 				addClassNamesToElement(elementDOM, className);
 			}
@@ -114,7 +131,6 @@
 	}
 
 	$: if (selection) {
-		console.log('selectionchange');
 	}
 
 	let fontSizeClassOptions = {
@@ -126,12 +142,10 @@
 		standard: 'text-base'
 	};
 
-	$: console.log('formatTypeToolbar', formatType);
-	$: console.log('formatsToolbar', formats);
 </script>
 
 <div
-	class=" {isBubble && 'absolute w-fit'} flex {!isBubble &&
+	class=" {isBubble && 'absolute w-fit z-50'} flex {!isBubble &&
 		'flex-wrap'} gap-4 bg-slate-400 px-2 py-2 rounded inset-0 h-fit"
 	bind:this={toolbarRef}
 >

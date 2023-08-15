@@ -5,6 +5,5 @@ const _allComponents = import.meta.glob('@/components/cmsComponents/*', {
 	import: 'default'
 });
 
-console.log(_allComponents);
 
 export const allComponents = readable(_allComponents);

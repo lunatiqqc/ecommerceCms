@@ -25,7 +25,6 @@
 		</button>
 		<button
 			on:click={() => {
-				console.log('footerPageDataFromLayout', $page.data);
 				const globalContentClient = new CmsClient.GlobalContentClient();
 				globalContentClient.updateFooter({ globalFooter: $page.data.footer });
 			}}

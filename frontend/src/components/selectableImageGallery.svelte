@@ -12,11 +12,10 @@
 
 	export let dispatch = createEventDispatcher();
 
-	async function getFileFolders() {
+	async function getRootFileFolders(fileFolderName?: string) {
 		const fileClient = new CmsClient.FileClient();
 		try {
 			const _fileFolders = await fileClient.getFileFolders();
-			console.log('fileFolders from fetch', fileFolders);
 
 			fileFolders[0].subfolders = _fileFolders;
 		} catch (error) {
@@ -27,7 +26,7 @@
 	// Fetch fileFolders when the component is mounted
 	onMount(() => {
 		if (folderNestingLevel === 0) {
-			getFileFolders();
+			getRootFileFolders();
 		}
 	});
 
@@ -39,7 +38,18 @@
 		dispatch('imageselect', selectedImageFile);
 	}
 
-	console.log('fileFolder', fileFolders, folderNestingLevel);
+	async function handleUploadCompleted() {
+		console.log('uploadcompleted');
+
+		const fileClient = new CmsClient.FileClient();
+		try {
+			const _fileFolders = await fileClient.getFileFolders();
+
+			fileFolders = _fileFolders;
+		} catch (error) {
+			console.error('An error occurred during folder fetch:', error);
+		}
+	}
 
 	let indeciesOfClosedFolder = [];
 </script>
@@ -49,32 +59,37 @@
 		{#each fileFolders as folder, i}
 			{@const folderIsClosed = indeciesOfClosedFolder.includes(i)}
 			<li>
-				<div class="flex items-center gap-4">
-					{#if folderIsClosed}
-						<icon
-							on:click={() => {
-								indeciesOfClosedFolder = indeciesOfClosedFolder.filter((item) => {
-									return item !== i;
-								});
-							}}
-						>
-							<Icon width="32" icon="flat-color-icons:folder" />
-						</icon>
-					{:else}
-						<button>
+				<div class="flex items-center gap-4 my-4">
+					<div class="relative">
+						{#if folder.files?.length}
+							<div class="absolute pointer-events-none text-red-800 text-xl font-black right-0 bottom-1/3">{folder.files.length}</div>
+						{/if}
+						{#if folderIsClosed}
 							<icon
 								on:click={() => {
-									indeciesOfClosedFolder = [...indeciesOfClosedFolder, i];
+									indeciesOfClosedFolder = indeciesOfClosedFolder.filter((item) => {
+										return item !== i;
+									});
 								}}
 							>
-								<Icon width="32" icon="flat-color-icons:opened-folder" />
+								<Icon width="32" icon="flat-color-icons:folder" />
 							</icon>
-						</button>
-					{/if}
+						{:else}
+							<button>
+								<icon
+									on:click={() => {
+										indeciesOfClosedFolder = [...indeciesOfClosedFolder, i];
+									}}
+								>
+									<Icon width="32" icon="flat-color-icons:opened-folder" />
+								</icon>
+							</button>
+						{/if}
+					</div>
 
 					<div class="text-lg">{folder.name}</div>
 					<div class="flex">
-						<Upload fileFolder={folder} />
+						<Upload on:uploadcomplete={handleUploadCompleted} fileFolder={folder} />
 					</div>
 				</div>
 
@@ -88,7 +103,7 @@
 			</li>
 			{#if !folderIsClosed}
 				{#if folder.files?.length}
-					<ul class="flex flex-wrap mt-4 ml-4">
+					<ul class="flex flex-wrap ml-4">
 						{#each folder.files as file}
 							<li
 								class={selectedImageFile?.id === file.id && 'outline outline-green-600 z-10'}

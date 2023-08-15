@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ObjectFit from './styleDataEditors/background/backgroundImage/objectFit/objectFit.svelte';
+	import ObjectFit from './styleDataEditors/styling/background/backgroundImage/objectFit/objectFit.svelte';
 
 	export let height: number | null = null;
 	export let width: number | null = null;
@@ -8,7 +8,6 @@
 
 	export let imageStyle: CmsClient.ImageStyle & { imageFile: CmsClient.ImageFile };
 
-	console.log('incoming image', imageStyle);
 
 	let responsiveSize;
 
@@ -26,7 +25,6 @@
 
 	$: if (height !== null || height !== undefined) {
 		const responsiveSizesFiltered = imageStyle.imageFile.sizes?.filter((size) => {
-			console.log('size', size);
 
 			const sizeInt = size;
 

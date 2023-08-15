@@ -12,7 +12,6 @@
 
 	let props: CmsClient.MenuComponent = $$props;
 
-	$: console.log('props2', textStyling);
 
 	let classes;
 
@@ -23,12 +22,19 @@
 			arrayOfClassNames = Object.values(textStyling.textFormats);
 		}
 
+		if (textStyling.elementFormats) {
+			arrayOfClassNames = Object.values(textStyling.elementFormats);
+		}
+		if (textStyling.fontSizeClassOptions) {
+			arrayOfClassNames = Object.values(textStyling.fontSizeClassOptions);
+		}
+
 		classes = arrayOfClassNames.join(' ');
 	}
 </script>
 
-<div class="{classes} {textStyling?.elementFormats}">
+<div class="{classes}">
 	{#await dynamicPages then pages}
-		<RecursiveMenu isEditor={true} {pages} />
+		<RecursiveMenu {textStyling} isEditor={true} {pages} />
 	{/await}
 </div>
