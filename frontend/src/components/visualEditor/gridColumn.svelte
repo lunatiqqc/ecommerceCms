@@ -5,6 +5,7 @@
 	import NestedGridContent from '../nestedGridContent.svelte';
 	import GridColumnContent from '../gridColumnContent.svelte';
 	import { writable } from 'svelte/store';
+	import { parentContainer } from '@/stores/parentContainer';
 
 	export let gridColumn: CmsClient.GridColumn;
 
@@ -22,12 +23,9 @@
 
 	export let columnRef: HTMLElement;
 
-	const gridColumnStore = writable(gridColumn);
-
-	
+	$: gridColumnStore = writable(gridColumn);
 
 	const dispatch = createEventDispatcher();
-
 
 	let hoveredSide;
 
@@ -45,7 +43,7 @@
 		document.addEventListener('mouseup', handleMouseUp);
 
 		if (!$gridColumnStore.styling) {
-			$gridColumnStore.styling = CmsClient.ContainerStylingFromJSON({})
+			$gridColumnStore.styling = CmsClient.ContainerStylingFromJSON({});
 		}
 
 		const _hoveredSide = hoveredSide;
@@ -54,13 +52,14 @@
 			mouseDown = false;
 			if (widthDelta !== null && widthDelta !== undefined) {
 				if (_hoveredSide === 'right') {
-					$gridColumnStore.width += widthDelta;
+					//$gridColumnStore.width += widthDelta;
+					gridColumn.width += widthDelta;
 					columnRef.style.removeProperty('width');
 				}
 
 				if (_hoveredSide === 'left') {
-					$gridColumnStore.columnStart += widthDelta;
-					$gridColumnStore.width -= widthDelta;
+					gridColumn.columnStart += widthDelta;
+					gridColumn.width -= widthDelta;
 					columnRef.style.removeProperty('transform');
 					columnRef.style.removeProperty('width');
 				}
@@ -210,9 +209,7 @@
 					if (columnRectBeforeModification.top + mouseyDelta < parentRowBoundingBox.top) {
 						const newHeight = columnRectBeforeModification.height - mouseyDelta;
 
-						
-
-						$gridColumnStore.styling.height = newHeight + mouseyDelta
+						$gridColumnStore.styling.height = newHeight + mouseyDelta;
 						$gridColumnStore.styling.margin.top = 0;
 						return;
 					}
@@ -293,7 +290,6 @@
 	let self;
 </script>
 
-
 <div
 	draggable="false"
 	data-js-gridcolumn-controls
@@ -341,6 +337,7 @@
 				hoveredSide = undefined;
 			}}
 			on:click={() => {
+				$parentContainer = parentRowRef;
 				dispatch('setConfigurableContent', gridColumnStore);
 			}}
 			class="absolute flex items-center h-fit top-1/2 -translate-y-1/2 w-8 right-full"

@@ -68,6 +68,8 @@
 			styleContent: Writable<any>;
 		};
 	}) {
+		console.log("handleSetConfigurableContent");
+		
 		styleContent = detail;
 		//
 		//styleContent = 'dddd';
@@ -233,7 +235,7 @@
 			on:click={() => {
 				console.log($gridContentStore);
 
-				//$gridContentStore = $gridContentStore;
+				$gridContentStore = $gridContentStore;
 			}}>Log orig gridContent</button
 		>
 		<button

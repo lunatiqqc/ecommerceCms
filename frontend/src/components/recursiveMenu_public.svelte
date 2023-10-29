@@ -4,7 +4,6 @@
 
 	export let pages: CmsClient.Page[];
 	export let nestingLevel = 0;
-	export let isEditor: boolean;
 	export let textStyling: CmsClient.TextContainerStyling;
 </script>
 
@@ -13,11 +12,7 @@
 		{#each pages as page, i}
 			<li class="relative">
 				<svelte:element this={textStyling?.headingValue || 'div'}>
-					{#if isEditor}
-						<TextEditor textContent={{ html: `<div>${page.title}</div>` }}>{page.title}</TextEditor>
-					{:else}
-						<a href={page.url}>{page.title}</a>
-					{/if}
+					<a href={page.url}>{page.title}</a>
 				</svelte:element>
 
 				{#if page.children}

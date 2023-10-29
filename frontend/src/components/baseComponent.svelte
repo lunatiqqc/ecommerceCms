@@ -252,7 +252,7 @@ data-grid-column-index={rowColumnIndex} -->
 
 				dispatch('setConfigurableContent', componentStore);
 			}}
-			class="absolute flex items-center h-fit w-6 z-30 right-full pb-4"
+			class="absolute flex items-center h-fit w-6 z-30 left-full pb-4"
 		>
 			<Icon class="mb-auto" width={20} height={20} icon="carbon:settings-view" />
 		</icon>

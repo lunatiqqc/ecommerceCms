@@ -25,7 +25,7 @@
 			on:click={() => {
 				console.log('headerPageDataFromLayout', $page.data);
 				const globalContentClient = new CmsClient.GlobalContentClient();
-				globalContentClient.updateHeader({ globalHeader: $page.data.header });
+				globalContentClient.updateHeader({ globalContentUpdateHeaderRequest: $page.data.header });
 			}}
 		>
 			Put

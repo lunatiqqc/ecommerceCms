@@ -23,7 +23,7 @@
 		let offsetNewRow = 1;
 
 		gridRows = [
-			...gridRows.slice(0, gridRowIndex + offsetNewRow),
+			...gridRows.slice(0, gridRowIndex),
 
 			CmsClient.GridRowFromJSON({
 				columns: [
@@ -34,9 +34,12 @@
 							discriminator: componentDraggedDiscriminator
 						})
 					})
-				]
+				],
+				styling: {
+					height: 250
+				}
 			}),
-			...gridRows.slice(gridRowIndex + offsetNewRow)
+			...gridRows.slice(gridRowIndex)
 		];
 	}
 
@@ -102,11 +105,10 @@
 			}}
 			on:dragend={() => {
 				console.log('dragend');
-
-				gridRowIndexDragged = undefined;
-				gridRowIndexDraggedOver = undefined;
 			}}
 			on:dragover={() => {
+				console.log('dragover');
+
 				gridRowIndexDraggedOver = i;
 			}}
 		/>

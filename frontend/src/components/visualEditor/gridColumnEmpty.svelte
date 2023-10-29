@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher } from 'svelte';
 
 	export let indexOfColumnInGridRow;
-	export let componentDraggedDiscriminator
+	export let componentDraggedDiscriminator;
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher();
 
 	function handleComponentDrop(indexOfColumnInGridRow) {
 		console.log('handleComponentDrop', indexOfColumnInGridRow);
@@ -69,7 +69,7 @@
 <div
 	data-grid-column-index={indexOfColumnInGridRow}
 	class="relative col-start-{indexOfColumnInGridRow + 1}"
-	on:dragover|stopPropagation={(e) => {
+	on:dragover={(e) => {
 		if (componentDraggedDiscriminator) {
 			e.preventDefault();
 		}
@@ -77,6 +77,4 @@
 	on:drop|stopPropagation={() => {
 		handleComponentDrop(indexOfColumnInGridRow);
 	}}
->
-	<div class="absolute inset-0 w-full h-full" />
-</div>
+/>

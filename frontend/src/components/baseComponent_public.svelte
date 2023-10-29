@@ -6,11 +6,9 @@
 	function getComponent(
 		discriminator: CmsClient.Component['discriminator']
 	): Promise<ComponentType> {
-
-		const componentGetterKey = '/src/components/cmsComponents/' + discriminator + '.svelte';
+		const componentGetterKey = '/src/components/cmsComponents/' + discriminator + '_public.svelte';
 
 		const componentGetter = $allComponents[componentGetterKey];
-
 
 		return componentGetter();
 	}

@@ -28,7 +28,6 @@
 	gridRowStore.subscribe((value) => {});
 
 	let modifiedGridColumns: {
-		key: number;
 		originalIndex?: number;
 		content?: CmsClient.GridColumn;
 		skip: boolean;
@@ -47,18 +46,20 @@
 			modifiedGridColumns[i] = {
 				originalIndex: originalIndex,
 				content: columnContentAtIndex,
-				key: i,
-				skip: false
+				skip: false,
+				key: i
 			};
 
 			for (let j = 0; j < (columnContentAtIndex.width || 1) - 1; j++) {
-				modifiedGridColumns[i + 1 + j] = { key: i, skip: true };
+				modifiedGridColumns[i + 1 + j] = { key: i + 1, skip: true };
 			}
 			i = i + columnContentAtIndex.width - 1;
 		} else {
 			modifiedGridColumns[i] = { key: i, skip: false };
 		}
 	}
+
+	$: console.log('modifiedGridColumns', modifiedGridColumns);
 
 	let isHoveredWithDraggedComponent: string | null;
 
@@ -96,7 +97,9 @@
 	function handleComponentDragOver(event: MouseEvent) {
 		const elementClientSideHovered = getElementClientSide(event);
 
-		if (elementClientSideHovered === 'bottom') {
+		console.log(elementClientSideHovered);
+
+		if (elementClientSideHovered === 'top') {
 			isHoveredWithDraggedComponent = true;
 		}
 	}
@@ -214,7 +217,7 @@
 					console.log(overlappingNestedColumn, newHeight);
 
 					if (overlappingNestedColumn !== undefined) {
-						$gridRowStore.styling.height = overlappingNestedColumn;
+						$gridRowStore.styling.height = overlappingNestedColumn - gridRowRect.top;
 						return;
 					}
 				}
@@ -255,9 +258,6 @@
 		style={componentDraggedDiscriminator && `z-index:${gridRowIndex}`}
 		on:dragenter={(e) => {
 			//draggingOver = true;
-			if (componentDraggedDiscriminator && gridRowIndex !== gridRows.length - 1) {
-				handleComponentDragOver(e);
-			}
 		}}
 		on:dragleave={(e) => {
 			if (e.currentTarget.contains(e.relatedTarget)) {
@@ -270,7 +270,10 @@
 				isHoveredWithDraggedComponent = false;
 			}
 		}}
-		on:dragover={() => {
+		on:dragover={(e) => {
+			if (componentDraggedDiscriminator) {
+				handleComponentDragOver(e);
+			}
 			dispatch('dragover');
 		}}
 		on:dragend={() => {
@@ -283,26 +286,6 @@
 		on:mouseleave={(event) => {
 			mousemove = false;
 			hoveredSide = null;
-		}}
-		on:click={(e) => {
-			if (mousemoveGridColumn) {
-				return;
-			}
-			if (!$gridRowStore.styling) {
-				$gridRowStore.styling = CmsClient.ContainerStylingFromJSON({});
-			}
-
-			//console.log('self click');
-			//
-			//function callback(newContent) {
-			//	$gridRowStore = newContent;
-			//}
-			//
-
-			//styleContent.set($gridRowStore);
-
-			dispatch('setConfigurableContent', gridRowStore);
-			//configuredContent =
 		}}
 	>
 		{#if false && dragging}
@@ -321,39 +304,60 @@
 				<Icon icon="carbon:trash-can" width={32} />
 			</icon>
 		{/if}
-		{#if mousemove}
-			<icon
-				draggable="true"
-				on:drag={() => {
-					dispatch('dragging', {});
-				}}
-				on:dragend={() => {
-					dragging = false;
-				}}
-				on:dragstart={(e) => {
-					dragging = true;
 
-					e.dataTransfer?.setData('draggedGridRowIndex', gridRowIndex);
-					e.dataTransfer?.setData('gridRowId', $gridRowStore.id);
-				}}
-				on:drop|preventDefault={(e) => {
-					//console.log('dropping');
-					//
-					//draggingOver = false;
-					//const draggedGridRowIndexData = e.dataTransfer?.getData('draggedGridRowIndex');
-					//if (draggedGridRowIndexData) {
-					//	const draggedGridRowIndex = parseInt(draggedGridRowIndexData);
-					//	handleSortingGridRow(draggedGridRowIndex);
-					//	return;
-					//}
-					//handleDropComponent(e);
-					//isHoveredWithDraggedComponent = null;
-				}}
-				class="absolute flex items-center h-full z-20 right-full pr-12"
-			>
+		<icon
+			draggable="true"
+			on:drag={() => {
+				dispatch('dragging', {});
+			}}
+			on:dragend={() => {
+				dragging = false;
+			}}
+			on:dragstart={(e) => {
+				dragging = true;
+
+				e.dataTransfer?.setData('draggedGridRowIndex', gridRowIndex);
+				e.dataTransfer?.setData('gridRowId', $gridRowStore.id);
+			}}
+			on:drop|preventDefault={(e) => {
+				//console.log('dropping');
+				//
+				//draggingOver = false;
+				//const draggedGridRowIndexData = e.dataTransfer?.getData('draggedGridRowIndex');
+				//if (draggedGridRowIndexData) {
+				//	const draggedGridRowIndex = parseInt(draggedGridRowIndexData);
+				//	handleSortingGridRow(draggedGridRowIndex);
+				//	return;
+				//}
+				//handleDropComponent(e);
+				//isHoveredWithDraggedComponent = null;
+			}}
+			on:click={(e) => {
+				if (mousemoveGridColumn) {
+					return;
+				}
+				if (!$gridRowStore.styling) {
+					$gridRowStore.styling = CmsClient.ContainerStylingFromJSON({});
+				}
+
+				//console.log('self click');
+				//
+				//function callback(newContent) {
+				//	$gridRowStore = newContent;
+				//}
+				//
+
+				//styleContent.set($gridRowStore);
+
+				dispatch('setConfigurableContent', gridRowStore);
+				//configuredContent =
+			}}
+			class="absolute flex items-center h-full right-full pr-12"
+		>
+			{#if mousemove}
 				<Icon width={24} icon="fluent:dock-row-20-filled" />
-			</icon>
-		{/if}
+			{/if}
+		</icon>
 		<GridRowContent
 			on:mouseovergridcolumn={() => {
 				mousemove = false;
@@ -370,7 +374,7 @@
 			{mousemove && 'bg-slate-300 bg-opacity-30'}
 			"
 			bind:node={rowRef}
-			styling={$gridRowStore.styling}
+			bind:styling={$gridRowStore.styling}
 		>
 			{#if false && isHoveredWithDraggedComponent}
 				<div
@@ -401,17 +405,42 @@
 					{/each}
 				</div>
 			{/if}
+			{#if isHoveredWithDraggedComponent}
+				<div class="w-full col-span-full bg-white grid grid-cols-12 h-fit">
+					{#each new Array(12) as number, i}
+						<div
+							data-grid-column-index-new={i}
+							class="aspect-square outline-1 outline"
+							on:dragover|preventDefault|stopPropagation
+							on:drop={() => {
+								dispatch('insertgridrow', { columnIndex: i });
+								isHoveredWithDraggedComponent = false;
+							}}
+						>
+							{#if true}
+								<icon>
+									<Icon strokeWidth="10" class=" w-full h-full " icon="ion:add" />
+								</icon>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			{/if}
 
-			{#each modifiedGridColumns as modifiedGridColumn, j (modifiedGridColumn)}
-				{#if modifiedGridColumn.content}
-					{#if !modifiedGridColumn.skip}
+			{#each { length: 12 } as undefined, i}
+				{@const skip = modifiedGridColumns[i].skip}
+
+				{@const content = modifiedGridColumns[i].content}
+
+				{#if !skip}
+					{#if content}
 						<GridColumn
-							bind:columnRef={columnRefs[j]}
+							bind:columnRef={columnRefs[i]}
 							bind:mousemoveGridrow={mousemove}
 							bind:showGridOverlay
 							bind:gridRows
 							{gridRowIndex}
-							gridColumn={modifiedGridColumn.content}
+							bind:gridColumn={modifiedGridColumns[i].content}
 							{componentDraggedDiscriminator}
 							{gridRowNestingLevel}
 							parentRowRef={rowRef}
@@ -423,45 +452,47 @@
 							}}
 							on:setConfigurableContent
 						/>
+					{:else}
+						<GridColumnEmpty
+							on:gridColumnAdded={handleAddGridColumn}
+							{componentDraggedDiscriminator}
+							indexOfColumnInGridRow={i}
+						/>
 					{/if}
-				{:else}
-					<GridColumnEmpty
-						on:gridColumnAdded={handleAddGridColumn}
-						{componentDraggedDiscriminator}
-						indexOfColumnInGridRow={j}
-					/>
 				{/if}
 			{/each}
-		</GridRowContent>
-		{#if hoveredSide}
-			<icon class="right-0 w-5 absolute flex items-center h-full z-20 left-full">
-				<Icon
-					width={10}
-					viewBox={{ left: 10, top: 6, width: 12, height: 20 }}
-					icon="carbon:draggable"
-				/>
-			</icon>
-		{/if}
-		{#if isHoveredWithDraggedComponent}
-			<div class="w-full col-span-full bg-white grid grid-cols-12 h-fit">
-				{#each new Array(12) as number, i}
-					<div
-						data-grid-column-index-new={i}
-						class="aspect-square outline-1 outline"
-						on:dragover|preventDefault|stopPropagation
-						on:drop={() => {
-							dispatch('insertgridrow', { columnIndex: i });
-							isHoveredWithDraggedComponent = false;
-						}}
-					>
-						{#if true}
-							<icon>
-								<Icon strokeWidth="10" class=" w-full h-full " icon="ion:add" />
-							</icon>
+			{#if false}
+				{#each modifiedGridColumns as modifiedGridColumn, j (modifiedGridColumn.key)}
+					{#if !modifiedGridColumn.skip}
+						{#if modifiedGridColumn.content}
+							<GridColumn
+								bind:columnRef={columnRefs[j]}
+								bind:mousemoveGridrow={mousemove}
+								bind:showGridOverlay
+								bind:gridRows
+								{gridRowIndex}
+								bind:gridColumn={modifiedGridColumn.content}
+								{componentDraggedDiscriminator}
+								{gridRowNestingLevel}
+								parentRowRef={rowRef}
+								on:mouseovergridcolumn={(e) => {
+									mousemoveGridColumn = true;
+								}}
+								on:mouseleavegridcolumn={(e) => {
+									mousemoveGridColumn = false;
+								}}
+								on:setConfigurableContent
+							/>
+						{:else}
+							<GridColumnEmpty
+								on:gridColumnAdded={handleAddGridColumn}
+								{componentDraggedDiscriminator}
+								indexOfColumnInGridRow={j}
+							/>
 						{/if}
-					</div>
+					{/if}
 				{/each}
-			</div>
-		{/if}
+			{/if}
+		</GridRowContent>
 	</div>
 {/if}
